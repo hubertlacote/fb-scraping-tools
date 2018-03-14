@@ -1,4 +1,5 @@
 from src.downloader import Downloader
+from src.facebook_soup_parser import FacebookSoupParser
 from src import common
 
 from collections import OrderedDict
@@ -64,6 +65,10 @@ def build_buddy_feed_url(user_id, client_id):
         "msgs_recv=0&uid={0}&viewer_uid={0}&sticky_token=1058&" + \
         "sticky_pool=lla1c22_chat-proxy&state=active"). \
             format(user_id, client_id)
+
+def build_friends_page_url(page_no):
+    return "https://m.facebook.com/friends/center/friends/?ppk={0}". \
+        format(page_no)
 
 def append_times(new_times, times):
     """ Add times from new_times that are not in times.
@@ -148,6 +153,7 @@ class FacebookFetcher:
 
     def __init__(self, downloader, config):
         self.downloader = downloader
+        self.fbParser = FacebookSoupParser()
         self.cookie = common.build_cookie(config)
         self.buddy_feed_url = build_buddy_feed_url(
             config.user_id, config.client_id)
@@ -168,3 +174,31 @@ class FacebookFetcher:
             logging.error("Error while downloading page '{0}', "
                 "got exception: '{1}'".format(self.buddy_feed_url, e))
             return OrderedDict()
+
+    def fetch_friend_list(self):
+
+        friend_list = {}
+        page_no = 0
+
+        while True:
+
+            url = build_friends_page_url(page_no)
+            try:
+                response = self.downloader.fetch_url(self.cookie,
+                    url, timeout_secs = 15)
+
+                friends_found = self.fbParser.parse_friends_page(
+                    response.text)
+                friend_list.update(friends_found)
+                if not friends_found:
+                    logging.info("No friends found on page {0}".
+                        format(page_no))
+                    return friend_list
+
+                page_no = page_no + 1
+                logging.info("Found {0} friends".format(len(friends_found)))
+
+            except Exception as e:
+                logging.error("Error while downloading page '{0}', "
+                    "got exception: '{1}'".format(url, e))
+                return friend_list
