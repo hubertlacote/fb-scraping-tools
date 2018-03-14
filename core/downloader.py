@@ -16,7 +16,7 @@ class Downloader:
                 " (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36",
         }
 
-    def fetch_url(self, cookie, url, timeout_secs = 15, retries = 1):
+    def fetch_url(self, cookie, url, timeout_secs=15, retries=1):
         headers = self.HEADERS
         headers["cookie"] = cookie
 
@@ -24,8 +24,8 @@ class Downloader:
             logging.info("Fetching {0} - Attempt {1}".format(url, attempt_no))
 
             try:
-                response = requests.get(url = url, headers = headers,
-                    allow_redirects = True, timeout = timeout_secs)
+                response = requests.get(url=url, headers=headers,
+                    allow_redirects=True, timeout=timeout_secs)
 
                 if response.status_code != 200 or not response.text:
                     raise RuntimeError("Error while downloading page '{0}', "
