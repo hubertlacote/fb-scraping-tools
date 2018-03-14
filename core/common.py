@@ -9,8 +9,10 @@ CONFIG_FILENAME = "config/config.json"
 CONFIG_KEYS = ['cookie_xs', 'user_id', 'client_id']
 Config = namedtuple('Config', CONFIG_KEYS)
 
+
 def prettify(decoded_json):
     return json.dumps(decoded_json, indent=4)
+
 
 def parse_config(config_json):
     """
@@ -35,11 +37,13 @@ def parse_config(config_json):
     return Config(
         *[config_json[key] for key in CONFIG_KEYS])
 
+
 def get_filepath(filename):
     return os.path.join(
         os.path.dirname(os.path.realpath(__file__)),
         "..",
         filename)
+
 
 def load_json_from_fd(fd):
     try:
@@ -49,6 +53,7 @@ def load_json_from_fd(fd):
         logging.error("Error parsing JSON, got exception: '{0}'".format(e))
 
     return {}
+
 
 def load_json_from_file(filepath):
     if not os.path.exists(filepath):
@@ -64,15 +69,18 @@ def load_json_from_file(filepath):
     with open(filepath, "r") as f:
         return load_json_from_fd(f)
 
+
 def load_config():
     return parse_config(
         load_json_from_file(CONFIG_FILENAME))
+
 
 def build_cookie(config):
     return "c_user={0}; xs={1}; noscript=1;".format(
         config.user_id,
         config.cookie_xs
     )
+
 
 def configure_logging(logging_level):
     logging.basicConfig(format='%(asctime)s %(filename)s:%(lineno)d:'

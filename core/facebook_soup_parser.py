@@ -4,6 +4,7 @@ from collections import OrderedDict
 import logging
 import re
 
+
 class FacebookSoupParser:
 
     def parse_about_page(self, content):

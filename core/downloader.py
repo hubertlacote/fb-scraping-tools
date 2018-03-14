@@ -3,6 +3,7 @@
 import logging
 import requests
 
+
 class Downloader:
     """Downloading URLs with headers set"""
 

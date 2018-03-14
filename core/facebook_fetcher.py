@@ -7,6 +7,7 @@ from datetime import datetime
 import json
 import logging
 
+
 def parse_buddy_list(raw_json):
     """
     >>> parse_buddy_list('for (;;); {"ms": [{"type": "chatproxy-presence", '
@@ -57,6 +58,7 @@ def parse_buddy_list(raw_json):
 
     return OrderedDict(sorted(flattened_buddy_list.items()))
 
+
 def build_buddy_feed_url(user_id, client_id):
     return ("https://5-edge-chat.facebook.com/pull?channel=p_{0}&" + \
         # seq = 1 directly gives the full list
@@ -66,13 +68,16 @@ def build_buddy_feed_url(user_id, client_id):
         "sticky_pool=lla1c22_chat-proxy&state=active"). \
             format(user_id, client_id)
 
+
 def build_friends_page_url(page_no):
     return "https://m.facebook.com/friends/center/friends/?ppk={0}". \
         format(page_no)
 
+
 def build_about_page_url(user_id):
     return "https://m.facebook.com/profile.php?v=info&id={0}". \
         format(user_id)
+
 
 def append_times(new_times, times):
     """ Add times from new_times that are not in times.
@@ -109,6 +114,7 @@ def append_times(new_times, times):
                 changes = True
 
     return changes
+
 
 def parse_times(times, user_infos):
     """ Parse names using user_infos and times.
@@ -152,6 +158,7 @@ def parse_times(times, user_infos):
             parsed[name].append(time_parsed)
 
     return parsed
+
 
 class FacebookFetcher:
 
