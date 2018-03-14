@@ -48,7 +48,8 @@ class FacebookSoupParser:
             name = name_tag.text
         user_info["Name"] = name
 
-        tags = ['AIM', 'Address', 'BBM', 'Birth Name', 'Birthday', \
+        tags = [
+            'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday', \
             'Facebook', 'Foursquare', 'Gadu-Gadu', 'Gender', 'ICQ', \
             'Instagram', 'Interested in', 'Languages', 'LinkedIn', \
             'Maiden Name', 'Mobile', 'Nickname', 'Political Views', \

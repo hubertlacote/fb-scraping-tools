@@ -31,7 +31,8 @@ def parse_buddy_list(raw_json):
     try:
         decoded_json = json.loads(valid_raw_json)
     except Exception as e:
-        logging.error("Failed to decode JSON: '{0}', got exception:"
+        logging.error(
+            "Failed to decode JSON: '{0}', got exception:"
             " '{1}'".format(valid_raw_json, e))
         return OrderedDict()
 
@@ -60,7 +61,8 @@ def parse_buddy_list(raw_json):
 
 
 def build_buddy_feed_url(user_id, client_id):
-    return ("https://5-edge-chat.facebook.com/pull?channel=p_{0}&" + \
+    return (
+        "https://5-edge-chat.facebook.com/pull?channel=p_{0}&" + \
         # seq = 1 directly gives the full list
         "seq=1&" + \
         "partition=-2&clientid={1}&cb=ze0&idle=0&qp=yisq=129169&" + \
@@ -137,7 +139,8 @@ def parse_times(times, user_infos):
 
         current_times = times[user_id]
         if not current_times:
-            logging.warn("Skipping user '{0}' - no times found".
+            logging.warn(
+                "Skipping user '{0}' - no times found".
                 format(user_id))
             continue
 
@@ -145,8 +148,7 @@ def parse_times(times, user_infos):
         if user_id not in user_infos or \
             "Name" not in user_infos[user_id] or \
                 not user_infos[user_id]["Name"] :
-            logging.warn("No name found for user '{0}'".
-                format(user_id))
+            logging.warn("No name found for user '{0}'".format(user_id))
         else:
             name = user_infos[user_id]["Name"]
 
@@ -176,13 +178,15 @@ class FacebookFetcher:
         """
 
         try:
-            response = self.downloader.fetch_url(self.cookie,
-                self.buddy_feed_url, timeout_secs=15, retries=retries)
+            response = self.downloader.fetch_url(
+                self.cookie, self.buddy_feed_url,
+                timeout_secs=15, retries=retries)
 
             return parse_buddy_list(response.text)
 
         except Exception as e:
-            logging.error("Error while downloading page '{0}', "
+            logging.error(
+                "Error while downloading page '{0}', "
                 "got exception: '{1}'".format(self.buddy_feed_url, e))
             return OrderedDict()
 
@@ -195,14 +199,15 @@ class FacebookFetcher:
 
             url = build_friends_page_url(page_no)
             try:
-                response = self.downloader.fetch_url(self.cookie,
-                    url, timeout_secs=15)
+                response = self.downloader.fetch_url(
+                    self.cookie, url, timeout_secs=15)
 
                 friends_found = self.fbParser.parse_friends_page(
                     response.text)
                 friend_list.update(friends_found)
                 if not friends_found:
-                    logging.info("No friends found on page {0}".
+                    logging.info(
+                        "No friends found on page {0}".
                         format(page_no))
                     return friend_list
 
@@ -210,13 +215,15 @@ class FacebookFetcher:
                 logging.info("Found {0} friends".format(len(friends_found)))
 
             except Exception as e:
-                logging.error("Error while downloading page '{0}', "
+                logging.error(
+                    "Error while downloading page '{0}', "
                     "got exception: '{1}'".format(url, e))
                 return friend_list
 
     def fetch_user_infos(self, user_ids):
 
-        logging.info("Querying '{0}' users from Facebook".
+        logging.info(
+            "Querying '{0}' users from Facebook".
             format(len(user_ids)))
 
         infos = {}
@@ -224,8 +231,8 @@ class FacebookFetcher:
 
             url = build_about_page_url(user_id)
             try:
-                response = self.downloader.fetch_url(self.cookie,
-                    url, timeout_secs=15)
+                response = self.downloader.fetch_url(
+                    self.cookie, url, timeout_secs=15)
 
                 user_infos = self.fbParser.parse_about_page(
                     response.text)
@@ -235,7 +242,8 @@ class FacebookFetcher:
                     user_id, common.prettify(user_infos)))
 
             except Exception as e:
-                logging.error("Error while downloading page '{0}', "
+                logging.error(
+                    "Error while downloading page '{0}', "
                     "got exception: '{1}'".format(url, e))
 
         return infos

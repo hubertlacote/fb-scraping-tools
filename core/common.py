@@ -31,8 +31,8 @@ def parse_config(config_json):
     """
     for key in CONFIG_KEYS:
         if key not in config_json or not config_json[key]:
-            raise RuntimeError("Configuration file does not contain '{0}'".
-                format(key))
+            raise RuntimeError(
+                "Configuration file does not contain '{0}'".format(key))
 
     return Config(
         *[config_json[key] for key in CONFIG_KEYS])
@@ -83,5 +83,6 @@ def build_cookie(config):
 
 
 def configure_logging(logging_level):
-    logging.basicConfig(format='%(asctime)s %(filename)s:%(lineno)d:'
+    logging.basicConfig(
+        format='%(asctime)s %(filename)s:%(lineno)d:'
         ' %(levelname)s: %(message)s', level=logging_level)
