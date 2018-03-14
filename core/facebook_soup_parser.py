@@ -49,11 +49,11 @@ class FacebookSoupParser:
         user_info["Name"] = name
 
         tags = [
-            'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday', \
-            'Facebook', 'Foursquare', 'Gadu-Gadu', 'Gender', 'ICQ', \
-            'Instagram', 'Interested in', 'Languages', 'LinkedIn', \
-            'Maiden Name', 'Mobile', 'Nickname', 'Political Views', \
-            'Religious views', 'Skype', 'Snapchat', 'Twitter', 'VK', \
+            'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday',
+            'Facebook', 'Foursquare', 'Gadu-Gadu', 'Gender', 'ICQ',
+            'Instagram', 'Interested in', 'Languages', 'LinkedIn',
+            'Maiden Name', 'Mobile', 'Nickname', 'Political Views',
+            'Religious views', 'Skype', 'Snapchat', 'Twitter', 'VK',
             'Websites', 'Windows Live Messenger', 'Year of birth']
 
         for tag in tags:
