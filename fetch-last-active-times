@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from src import common
-from src.downloader import Downloader
-from src.facebook_fetcher import FacebookFetcher
+from core import common
+from core.downloader import Downloader
+from core.facebook_fetcher import FacebookFetcher
 
 import logging
 

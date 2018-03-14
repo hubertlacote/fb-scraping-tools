@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from src import common
-from src import facebook_fetcher
-from src.downloader import Downloader
+from core import common
+from core import facebook_fetcher
+from core.downloader import Downloader
 
 from datetime import datetime
 import json

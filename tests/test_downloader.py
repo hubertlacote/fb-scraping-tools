@@ -1,5 +1,5 @@
 from collections import namedtuple
-from src.downloader import Downloader
+from core.downloader import Downloader
 
 from unittest.mock import call, patch, ANY
 
@@ -30,7 +30,7 @@ def create_not_found_return_value():
         headers = "Some headers"
     )
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_url_is_passed(mock_requests):
     downloader = Downloader()
 
@@ -40,7 +40,7 @@ def test_url_is_passed(mock_requests):
     mock_requests.assert_called_once_with(
         url = FAKE_URL, headers = ANY, allow_redirects = ANY, timeout = ANY)
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_cookie_is_passed_in_headers(mock_requests):
     downloader = Downloader()
 
@@ -60,7 +60,7 @@ def test_cookie_is_passed_in_headers(mock_requests):
         headers = expected_headers, url = ANY,
         allow_redirects = ANY, timeout = ANY)
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_redirect_is_enabled(mock_requests):
     downloader = Downloader()
 
@@ -70,7 +70,7 @@ def test_redirect_is_enabled(mock_requests):
     mock_requests.assert_called_once_with(
         allow_redirects = True, url = ANY, headers = ANY, timeout = ANY)
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_default_timeout_is_passed(mock_requests):
     downloader = Downloader()
 
@@ -80,7 +80,7 @@ def test_default_timeout_is_passed(mock_requests):
     mock_requests.assert_called_once_with(
         timeout = 15, url = ANY, headers = ANY, allow_redirects = ANY)
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_timeout_is_passed(mock_requests):
     downloader = Downloader()
 
@@ -90,7 +90,7 @@ def test_timeout_is_passed(mock_requests):
     mock_requests.assert_called_once_with(
         timeout = 3600, url = ANY, headers = ANY, allow_redirects = ANY)
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_response_is_returned(mock_requests):
     downloader = Downloader()
 
@@ -102,7 +102,7 @@ def test_response_is_returned(mock_requests):
     mock_requests.assert_called_once_with(
         url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_status_code_different_from_200_causes_exception(mock_requests):
     downloader = Downloader()
 
@@ -117,7 +117,7 @@ def test_status_code_different_from_200_causes_exception(mock_requests):
         url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
     assert got_ex
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_empty_returned_text_causes_exception(mock_requests):
     downloader = Downloader()
 
@@ -132,7 +132,7 @@ def test_empty_returned_text_causes_exception(mock_requests):
         url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
     assert got_ex
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_exceptions_from_get_are_propagated(mock_requests):
     downloader = Downloader()
 
@@ -148,7 +148,7 @@ def test_exceptions_from_get_are_propagated(mock_requests):
         url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
     assert got_ex
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_timeout_is_propagated_when_retries_are_disabled(mock_requests):
     downloader = Downloader()
 
@@ -164,7 +164,7 @@ def test_timeout_is_propagated_when_retries_are_disabled(mock_requests):
         url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
     assert got_ex
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_retries_when_timeout_then_ok(mock_requests):
     downloader = Downloader()
 
@@ -182,7 +182,7 @@ def test_retries_when_timeout_then_ok(mock_requests):
         call(url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
     ])
 
-@patch("src.downloader.requests.get")
+@patch("core.downloader.requests.get")
 def test_timeout_is_propagated_after_last_retry_failed(mock_requests):
     downloader = Downloader()
 

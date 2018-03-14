@@ -1,6 +1,6 @@
-from src.downloader import Downloader
-from src.facebook_soup_parser import FacebookSoupParser
-from src import common
+from core.downloader import Downloader
+from core.facebook_soup_parser import FacebookSoupParser
+from core import common
 
 from collections import OrderedDict
 from datetime import datetime
