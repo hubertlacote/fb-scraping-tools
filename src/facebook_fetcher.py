@@ -162,7 +162,7 @@ class FacebookFetcher:
         self.buddy_feed_url = build_buddy_feed_url(
             config.user_id, config.client_id)
 
-    def fetch_last_active_times(self):
+    def fetch_last_active_times(self, retries = 1):
         """ Returns an OrderedDict, mapping user_id to list of epoch times.
 
         Does not throw, returns an empty OrderedDict if an error occurs.
@@ -170,7 +170,7 @@ class FacebookFetcher:
 
         try:
             response = self.downloader.fetch_url(self.cookie,
-                self.buddy_feed_url, timeout_secs = 15)
+                self.buddy_feed_url, timeout_secs = 15, retries = retries)
 
             return parse_buddy_list(response.text)
 
