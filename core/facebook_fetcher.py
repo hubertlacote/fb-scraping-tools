@@ -147,7 +147,7 @@ def parse_times(times, user_infos):
         name = user_id
         if user_id not in user_infos or \
             "Name" not in user_infos[user_id] or \
-                not user_infos[user_id]["Name"] :
+                not user_infos[user_id]["Name"]:
             logging.warn("No name found for user '{0}'".format(user_id))
         else:
             name = user_infos[user_id]["Name"]
