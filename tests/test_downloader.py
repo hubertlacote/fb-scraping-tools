@@ -1,7 +1,9 @@
 from collections import namedtuple
 from src.downloader import Downloader
 
-from unittest.mock import patch, ANY
+from unittest.mock import call, patch, ANY
+
+import requests
 
 FAKE_URL = "http://fake.url"
 FAKE_COOKIE = "fake cookie"
@@ -89,6 +91,18 @@ def test_timeout_is_passed(mock_requests):
         timeout = 3600, url = ANY, headers = ANY, allow_redirects = ANY)
 
 @patch("src.downloader.requests.get")
+def test_response_is_returned(mock_requests):
+    downloader = Downloader()
+
+    mock_requests.return_value = create_ok_return_value()
+    res = downloader.fetch_url(FAKE_COOKIE, FAKE_URL)
+
+    assert res == create_ok_return_value()
+
+    mock_requests.assert_called_once_with(
+        url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
+
+@patch("src.downloader.requests.get")
 def test_status_code_different_from_200_causes_exception(mock_requests):
     downloader = Downloader()
 
@@ -132,4 +146,60 @@ def test_exceptions_from_get_are_propagated(mock_requests):
 
     mock_requests.assert_called_once_with(
         url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
+    assert got_ex
+
+@patch("src.downloader.requests.get")
+def test_timeout_is_propagated_when_retries_are_disabled(mock_requests):
+    downloader = Downloader()
+
+    mock_requests.side_effect = requests.exceptions.Timeout()
+    got_ex = False
+    try:
+        downloader.fetch_url(FAKE_COOKIE, FAKE_URL)
+
+    except requests.exceptions.Timeout:
+        got_ex = True
+
+    mock_requests.assert_called_once_with(
+        url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
+    assert got_ex
+
+@patch("src.downloader.requests.get")
+def test_retries_when_timeout_then_ok(mock_requests):
+    downloader = Downloader()
+
+    mock_requests.side_effect = [
+        requests.exceptions.Timeout(),
+        create_ok_return_value()
+    ]
+
+    res = downloader.fetch_url(FAKE_COOKIE, FAKE_URL, retries = 3)
+
+    assert res == create_ok_return_value()
+
+    mock_requests.assert_has_calls([
+        call(url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY),
+        call(url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
+    ])
+
+@patch("src.downloader.requests.get")
+def test_timeout_is_propagated_after_last_retry_failed(mock_requests):
+    downloader = Downloader()
+
+    mock_requests.side_effect = [
+        requests.exceptions.Timeout(),
+        requests.exceptions.Timeout()
+    ]
+
+    got_ex = False
+    try:
+        downloader.fetch_url(FAKE_COOKIE, FAKE_URL, retries = 2)
+
+    except requests.exceptions.Timeout:
+        got_ex = True
+
+    mock_requests.assert_has_calls([
+        call(url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY),
+        call(url = ANY, headers = ANY, allow_redirects = ANY, timeout = ANY)
+    ])
     assert got_ex

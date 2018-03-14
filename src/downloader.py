@@ -16,17 +16,28 @@ class Downloader:
                 " (KHTML, like Gecko) Chrome/64.0.3282.167 Safari/537.36",
         }
 
-    def fetch_url(self, cookie, url, timeout_secs = 15):
-        logging.info("Fetching {0}".format(url))
+    def fetch_url(self, cookie, url, timeout_secs = 15, retries = 1):
         headers = self.HEADERS
         headers["cookie"] = cookie
 
-        response = requests.get(url = url, headers = headers,
-            allow_redirects = True, timeout = timeout_secs)
+        for attempt_no in range(1, retries + 1):
+            logging.info("Fetching {0} - Attempt {1}".format(url, attempt_no))
 
-        if response.status_code != 200 or not response.text:
-            raise RuntimeError("Error while downloading page '{0}', "
-                "status code: '{1}' - headers: '{2}'".format(
-                    url, response.status_code, response.headers))
+            try:
+                response = requests.get(url = url, headers = headers,
+                    allow_redirects = True, timeout = timeout_secs)
 
-        return response
+                if response.status_code != 200 or not response.text:
+                    raise RuntimeError("Error while downloading page '{0}', "
+                        "status code: '{1}' - headers: '{2}'".format(
+                            url, response.status_code, response.headers))
+
+                return response
+
+            except requests.exceptions.Timeout:
+                logging.warn("Request to '{0}' timed out".format(url))
+                if attempt_no == retries:
+                    raise
+
+        assert False, "Downloader.fetch_url - Should never reach this point"
+        return None
