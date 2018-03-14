@@ -58,5 +58,5 @@ def build_cookie(config):
     )
 
 def configure_logging(logging_level):
-    logging.basicConfig(format='%(name)s: %(levelname)s: %(message)s',
-        level=logging_level)
+    logging.basicConfig(format='%(asctime)s %(filename)s:%(lineno)d:'
+        ' %(levelname)s: %(message)s', level=logging_level)
