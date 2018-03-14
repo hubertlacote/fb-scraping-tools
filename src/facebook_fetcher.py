@@ -70,6 +70,10 @@ def build_friends_page_url(page_no):
     return "https://m.facebook.com/friends/center/friends/?ppk={0}". \
         format(page_no)
 
+def build_about_page_url(user_id):
+    return "https://m.facebook.com/profile.php?v=info&id={0}". \
+        format(user_id)
+
 def append_times(new_times, times):
     """ Add times from new_times that are not in times.
 
@@ -202,3 +206,29 @@ class FacebookFetcher:
                 logging.error("Error while downloading page '{0}', "
                     "got exception: '{1}'".format(url, e))
                 return friend_list
+
+    def fetch_user_infos(self, user_ids):
+
+        logging.info("Querying '{0}' users from Facebook".
+            format(len(user_ids)))
+
+        infos = {}
+        for user_id in user_ids:
+
+            url = build_about_page_url(user_id)
+            try:
+                response = self.downloader.fetch_url(self.cookie,
+                    url, timeout_secs = 15)
+
+                user_infos = self.fbParser.parse_about_page(
+                    response.text)
+                infos[user_id] = user_infos
+
+                logging.info("Got infos for user '{0}' - {1}".format(
+                    user_id, common.prettify(user_infos)))
+
+            except Exception as e:
+                logging.error("Error while downloading page '{0}', "
+                    "got exception: '{1}'".format(url, e))
+
+        return infos
