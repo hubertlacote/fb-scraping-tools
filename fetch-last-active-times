@@ -1,0 +1,17 @@
+#!/usr/bin/env python3
+
+from src import common
+from src.downloader import Downloader
+from src.facebook_fetcher import FacebookFetcher
+
+import logging
+
+if __name__ == "__main__":
+
+    common.configure_logging(logging.WARN)
+    config = common.load_config()
+    downloader = Downloader()
+    fbFetcher = FacebookFetcher(downloader, config)
+
+    last_active_times = fbFetcher.fetch_last_active_times()
+    print(common.prettify(last_active_times))

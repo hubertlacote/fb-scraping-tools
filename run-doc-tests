@@ -1,0 +1,24 @@
+#! /bin/bash
+
+tests="src/common.py src/facebook_fetcher.py"
+
+ret=0
+for test in $tests; do
+  echo -e "Running $test..."
+
+  log_file=$(mktemp)
+
+  python -m doctest "$test" >"$log_file" 2>&1
+
+  if [[ $? -eq 0 ]]; then
+    echo -e "SUCCESS - $test"
+  else
+    cat $log_file
+    echo -e "FAILED $test"
+    ret=1
+  fi
+
+  rm $log_file
+done
+
+exit $ret
