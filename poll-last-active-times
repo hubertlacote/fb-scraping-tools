@@ -21,7 +21,7 @@ if __name__ == "__main__":
 
     while True:
 
-        new_times = fbFetcher.fetch_last_active_times()
+        new_times = fbFetcher.fetch_last_active_times(retries = 5)
 
         changes = facebook_fetcher.append_times(
             new_times, last_active_times)
