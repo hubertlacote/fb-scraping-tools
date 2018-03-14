@@ -40,16 +40,32 @@ def get_filepath(filename):
         "..",
         filename)
 
+def load_json_from_fd(fd):
+    try:
+        return json.load(fd)
+
+    except Exception as e:
+        logging.error("Error parsing JSON, got exception: '{0}'".format(e))
+
+    return {}
+
+def load_json_from_file(filepath):
+    if not os.path.exists(filepath):
+        filepath_org = filepath
+        filepath = get_filepath(filepath)
+
+        if not os.path.exists(filepath):
+            logging.error("Couldn't find file '{0}' or '{1}'".format(
+                filepath_org, filepath))
+            return {}
+
+    logging.info("Loading JSON file '{0}'".format(filepath))
+    with open(filepath, "r") as f:
+        return load_json_from_fd(f)
+
 def load_config():
-    config_filepath = get_filepath(CONFIG_FILENAME)
-    if not os.path.exists(config_filepath):
-        raise RuntimeError("Configuration file '{0}' does not exist".
-            format(config_filepath))
-
-    with open(config_filepath, "r") as f:
-        config_json = json.load(f)
-
-    return parse_config(config_json)
+    return parse_config(
+        load_json_from_file(CONFIG_FILENAME))
 
 def build_cookie(config):
     return "c_user={0}; xs={1}; noscript=1;".format(
