@@ -1,3 +1,8 @@
 #! /bin/bash
 
+where_am_i="${0%/*}"
+
+# Enforce PEP8 coding conventions
+pycodestyle --show-source "${where_am_i}"
+
 nosetests --with-doctest
