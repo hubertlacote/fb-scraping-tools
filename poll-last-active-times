@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+from src import common
+from src import facebook_fetcher
+from src.downloader import Downloader
+
+from datetime import datetime
+import json
+import logging
+import time
+
+if __name__ == "__main__":
+
+    common.configure_logging(logging.WARN)
+    config = common.load_config()
+    downloader = Downloader()
+    fbFetcher = facebook_fetcher.FacebookFetcher(downloader, config)
+
+    times_filepath = common.get_filepath("times.json")
+    last_active_times = {}
+
+    while True:
+
+        new_times = fbFetcher.fetch_last_active_times()
+
+        changes = facebook_fetcher.append_times(
+            new_times, last_active_times)
+
+        if changes:
+            logging.info("Saving changes to file")
+            with open(times_filepath, "w") as f:
+                json.dump(last_active_times, f,  indent=4)
+
+        time.sleep(60 * 5)
