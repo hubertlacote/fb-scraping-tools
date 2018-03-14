@@ -37,7 +37,7 @@ def parse_buddy_list(raw_json):
         return OrderedDict()
 
     logging.debug("Got json: '{0}'".format(common.prettify(decoded_json)))
-    if not "ms" in decoded_json:
+    if "ms" not in decoded_json:
         logging.error("Invalid json returned - not found 'ms'")
         logging.debug("Got instead: {0}".format(common.prettify(decoded_json)))
         return OrderedDict()
