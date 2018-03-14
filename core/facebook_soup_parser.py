@@ -123,6 +123,6 @@ class FacebookSoupParser:
                 uid_found = re.findall(r'uid=\d+', link.attrs["href"])
                 if uid_found:
                     friends_found[uid_found[0].replace("uid=", "")] =\
-                        { "Name": link.text }
+                        {"Name": link.text}
 
         return friends_found
