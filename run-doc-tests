@@ -1,6 +1,6 @@
 #! /bin/bash
 
-tests="src/common.py src/facebook_fetcher.py"
+tests="src/common.py src/facebook_fetcher.py src/facebook_soup_parser.py"
 
 ret=0
 for test in $tests; do
