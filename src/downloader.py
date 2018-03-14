@@ -21,7 +21,7 @@ class Downloader:
         headers = self.HEADERS
         headers["cookie"] = cookie
 
-        response = requests.get(url, headers = headers,
+        response = requests.get(url = url, headers = headers,
             allow_redirects = True, timeout = timeout_secs)
 
         if response.status_code != 200 or not response.text:
