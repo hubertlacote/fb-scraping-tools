@@ -122,42 +122,62 @@ def parse_times(times, user_infos):
     """ Parse names using user_infos and times.
 
     >>> parse_times(OrderedDict([('1', [1500])]), {'1': {"Name": "John"}})
-    {'John': ['1970-01-01 01:25:00']}
+    [OrderedDict([('id', '1'), ('Name', 'John'), ('Birthday', ''), \
+('Education', ''), ('Gender', ''), ('Relationship', ''), \
+('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
+
     >>> parse_times(OrderedDict([('1', None)]), {'1': {"Name": "John"}})
-    {}
+    []
+
     >>> parse_times(OrderedDict([('1', [])]), {'1': {"Name": "John"}})
-    {}
+    []
+
     >>> parse_times(OrderedDict([('1', [1500])]), {})
-    {'1': ['1970-01-01 01:25:00']}
+    [OrderedDict([('id', '1'), ('Name', ''), ('Birthday', ''), \
+('Education', ''), ('Gender', ''), ('Relationship', ''), \
+('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
+
     >>> parse_times(OrderedDict([('1', [1500])]), {'1': {}})
-    {'1': ['1970-01-01 01:25:00']}
+    [OrderedDict([('id', '1'), ('Name', ''), ('Birthday', ''), \
+('Education', ''), ('Gender', ''), ('Relationship', ''), \
+('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
+
     >>> parse_times(OrderedDict([('1', [1500])]), {'1': {"Name": ""}})
-    {'1': ['1970-01-01 01:25:00']}
+    [OrderedDict([('id', '1'), ('Name', ''), ('Birthday', ''), \
+('Education', ''), ('Gender', ''), ('Relationship', ''), \
+('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
     """
-    parsed = {}
+
+    parsed = []
     for user_id in times:
+
+        parsed_user = OrderedDict()
 
         current_times = times[user_id]
         if not current_times:
             logging.warn(
-                "Skipping user '{0}' - no times found".
-                format(user_id))
+                "Skipping user '{0}'".format(user_id))
             continue
 
-        name = user_id
-        if user_id not in user_infos or \
-            "Name" not in user_infos[user_id] or \
-                not user_infos[user_id]["Name"]:
-            logging.warn("No name found for user '{0}'".format(user_id))
-        else:
-            name = user_infos[user_id]["Name"]
+        parsed_user["id"] = user_id
 
-        parsed[name] = []
+        tags = [
+            'Name', 'Birthday', 'Education', 'Gender',
+            'Relationship', 'Work', 'Year of birth']
+        for tag in tags:
+            parsed_user[tag] = ""
+            if user_id in user_infos and tag in user_infos[user_id]:
+                parsed_user[tag] = user_infos[user_id][tag]
+
+        parsed_times = []
         for time in current_times:
             time_parsed = time
             if int(time) != -1:
                 time_parsed = str(datetime.fromtimestamp(int(time)))
-            parsed[name].append(time_parsed)
+            parsed_times.append(time_parsed)
+
+        parsed_user["Times"] = parsed_times
+        parsed.append(parsed_user)
 
     return parsed
 
