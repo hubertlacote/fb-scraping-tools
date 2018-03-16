@@ -59,6 +59,30 @@ class FacebookSoupParser:
         ...    </div>
         ...    ''')["Relationship"]
         'Married'
+        >>> FacebookSoupParser().parse_about_page('''
+        ...    <div class="timeline aboutme">
+        ...         <div id="work">
+        ...             <a class="bm" href="">
+        ...                 <img src="" alt="1st work">
+        ...             </a>
+        ...             <a class="bm" href="">
+        ...                 <img src="" alt="2nd work">
+        ...             </a>
+        ...         </div>
+        ...    </div>''')["Work"]
+        '1st work'
+        >>> FacebookSoupParser().parse_about_page('''
+        ...    <div class="timeline aboutme">
+        ...         <div id="education">
+        ...             <a class="bm" href="">
+        ...                 <img src="" alt="1st education">
+        ...             </a>
+        ...             <a class="bm" href="">
+        ...                 <img src="" alt="2nd education">
+        ...             </a>
+        ...         </div>
+        ...    </div>''')["Education"]
+        '1st education'
         >>> len(FacebookSoupParser().parse_about_page(""))
         0
         """
@@ -93,6 +117,15 @@ class FacebookSoupParser:
                 user_info["Day and month of birth"] = " ".join(
                     parsed_birthday.split(" ")[0:2])
                 user_info["Year of birth"] = parsed_birthday.split(" ")[-1]
+
+        institution_tags = ["work", "education"]
+        for institution_tag in institution_tags:
+            found_tag = soup.find("div", attrs={"id": institution_tag})
+            if found_tag:
+                found_img_tag = found_tag.find("img")
+                if found_img_tag and "alt" in found_img_tag.attrs:
+                    user_info[institution_tag.capitalize()] = \
+                        found_img_tag.attrs["alt"]
 
         relationship_tag = soup.find("div", attrs={"id": "relationship"})
         if relationship_tag:
