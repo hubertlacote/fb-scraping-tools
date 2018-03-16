@@ -29,6 +29,14 @@ class FacebookSoupParser:
         '14 May 1984'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <div class="timeline aboutme">
+        ...         <div class="dc dd dq" title="Birthday">
+        ...             <div class="dv">14 May</div>
+        ...         </div>
+        ...    </div>
+        ...    ''')["Birthday"]
+        '14 May'
+        >>> FacebookSoupParser().parse_about_page('''
+        ...    <div class="timeline aboutme">
         ...         <div class="_5cds _2lcw _5cdu" title="Gender">
         ...             <div class="_5cdv r">Male</div>
         ...         </div>
