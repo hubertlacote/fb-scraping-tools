@@ -37,10 +37,13 @@ class FacebookSoupParser:
         'Male'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <div class="timeline aboutme">
-        ...         <div id="relationship"><div class="cq">Relationship</div><div class="cu do cv">Married to <a class="bu" href="/someone">Someone</a> since 14 March 2010</div></div>
+        ...         <div id="relationship"><div class="cq">''' + \
+                    'Relationship</div><div class="cu do cv">' + \
+                    'Married to <a class="bu" href="/someone">Someone</a>' + \
+                    ' since 14 March 2010</div></div>' + '''
         ...    </div>
         ...    ''')["Relationship"]
-        'Married to |Someone| since 14 March 2010'
+        'Married'
         >>> len(FacebookSoupParser().parse_about_page(""))
         27
         """
@@ -72,8 +75,17 @@ class FacebookSoupParser:
 
         relationship_tag = soup.find("div", attrs={"id": "relationship"})
         if relationship_tag:
-            user_info["Relationship"] = \
-                relationship_tag.get_text("|").replace("Relationship|", "")
+
+            relationship_choices = [
+                'In a relationship', 'Engaged', 'Married',
+                'In a civil partnership', 'In a domestic partnership',
+                'In an open relationship', 'It\'s complicated', 'Separated',
+                'Divorced', 'Widowed', 'Single'
+            ]
+            for relationship_choice in relationship_choices:
+                if relationship_choice in relationship_tag.text:
+                    user_info["Relationship"] = relationship_choice
+                    break
 
         return user_info
 
