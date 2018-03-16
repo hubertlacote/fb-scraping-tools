@@ -30,10 +30,18 @@ class FacebookSoupParser:
         >>> FacebookSoupParser().parse_about_page('''
         ...    <div class="timeline aboutme">
         ...         <div class="dc dd dq" title="Birthday">
+        ...             <div class="dv">14 May 1984</div>
+        ...         </div>
+        ...    </div>
+        ...    ''')["Year of birth"]
+        '1984'
+        >>> FacebookSoupParser().parse_about_page('''
+        ...    <div class="timeline aboutme">
+        ...         <div class="dc dd dq" title="Birthday">
         ...             <div class="dv">14 May</div>
         ...         </div>
         ...    </div>
-        ...    ''')["Birthday"]
+        ...    ''')["Day and month of birth"]
         '14 May'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <div class="timeline aboutme">
@@ -80,6 +88,16 @@ class FacebookSoupParser:
                     replace(tag, "").replace("\n", "")
             else:
                 user_info[tag] = ''
+
+        if "Birthday" in user_info:
+            parsed_birthday = user_info["Birthday"]
+            if parsed_birthday.count(" ") != 2:
+                user_info["Day and month of birth"] = parsed_birthday
+                del user_info["Birthday"]
+            else:
+                user_info["Day and month of birth"] = " ".join(
+                    parsed_birthday.split(" ")[0:2])
+                user_info["Year of birth"] = parsed_birthday.split(" ")[-1]
 
         relationship_tag = soup.find("div", attrs={"id": "relationship"})
         if relationship_tag:
