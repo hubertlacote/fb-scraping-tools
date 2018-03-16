@@ -118,31 +118,31 @@ def append_times(new_times, times):
     return changes
 
 
-def parse_times(times, user_infos):
+def process_data(times, user_infos):
     """ Parse names using user_infos and times.
 
-    >>> parse_times(OrderedDict([('1', [1500])]), {'1': {"Name": "John"}})
+    >>> process_data(OrderedDict([('1', [1500])]), {'1': {"Name": "John"}})
     [OrderedDict([('id', '1'), ('Name', 'John'), ('Birthday', ''), \
 ('Education', ''), ('Gender', ''), ('Relationship', ''), \
 ('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
 
-    >>> parse_times(OrderedDict([('1', None)]), {'1': {"Name": "John"}})
+    >>> process_data(OrderedDict([('1', None)]), {'1': {"Name": "John"}})
     []
 
-    >>> parse_times(OrderedDict([('1', [])]), {'1': {"Name": "John"}})
+    >>> process_data(OrderedDict([('1', [])]), {'1': {"Name": "John"}})
     []
 
-    >>> parse_times(OrderedDict([('1', [1500])]), {})
+    >>> process_data(OrderedDict([('1', [1500])]), {})
     [OrderedDict([('id', '1'), ('Name', ''), ('Birthday', ''), \
 ('Education', ''), ('Gender', ''), ('Relationship', ''), \
 ('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
 
-    >>> parse_times(OrderedDict([('1', [1500])]), {'1': {}})
+    >>> process_data(OrderedDict([('1', [1500])]), {'1': {}})
     [OrderedDict([('id', '1'), ('Name', ''), ('Birthday', ''), \
 ('Education', ''), ('Gender', ''), ('Relationship', ''), \
 ('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
 
-    >>> parse_times(OrderedDict([('1', [1500])]), {'1': {"Name": ""}})
+    >>> process_data(OrderedDict([('1', [1500])]), {'1': {"Name": ""}})
     [OrderedDict([('id', '1'), ('Name', ''), ('Birthday', ''), \
 ('Education', ''), ('Gender', ''), ('Relationship', ''), \
 ('Work', ''), ('Year of birth', ''), ('Times', ['1970-01-01 01:25:00'])])]
@@ -170,11 +170,12 @@ def parse_times(times, user_infos):
                 parsed_user[tag] = user_infos[user_id][tag]
 
         parsed_times = []
-        for time in current_times:
-            time_parsed = time
-            if int(time) != -1:
-                time_parsed = str(datetime.fromtimestamp(int(time)))
-            parsed_times.append(time_parsed)
+        if type(current_times) == list:
+            for time in current_times:
+                time_parsed = time
+                if int(time) != -1:
+                    time_parsed = str(datetime.fromtimestamp(int(time)))
+                parsed_times.append(time_parsed)
 
         parsed_user["Times"] = parsed_times
         parsed.append(parsed_user)

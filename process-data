@@ -28,6 +28,6 @@ if __name__ == "__main__":
         logging.error("No times passed on stdin")
         sys.exit(1)
 
-    parsed = facebook_fetcher.parse_times(last_active_times, user_infos)
+    parsed = facebook_fetcher.process_data(last_active_times, user_infos)
 
     print(common.prettify(parsed))
