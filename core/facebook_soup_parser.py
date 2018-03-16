@@ -35,6 +35,12 @@ class FacebookSoupParser:
         ...    </div>
         ...    ''')["Gender"]
         'Male'
+        >>> FacebookSoupParser().parse_about_page('''
+        ...    <div class="timeline aboutme">
+        ...         <div id="relationship"><div class="cq">Relationship</div><div class="cu do cv">Married to <a class="bu" href="/someone">Someone</a> since 14 March 2010</div></div>
+        ...    </div>
+        ...    ''')["Relationship"]
+        'Married to |Someone| since 14 March 2010'
         >>> len(FacebookSoupParser().parse_about_page(""))
         27
         """
