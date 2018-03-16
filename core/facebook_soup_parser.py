@@ -12,8 +12,7 @@ class FacebookSoupParser:
 
         Returns an OrderedDict([('Name', ''), ...]).
 
-        It always contains 27 keys (see below) and values are set if
-        the fields were found in the about page.
+        Keys are added only if the fields were found in the about page.
 
         >>> FacebookSoupParser().parse_about_page('''
         ...    <title id="pageTitle">Mark Zuckerberg</title>
@@ -61,17 +60,15 @@ class FacebookSoupParser:
         ...    ''')["Relationship"]
         'Married'
         >>> len(FacebookSoupParser().parse_about_page(""))
-        27
+        0
         """
         soup = BeautifulSoup(content, "lxml")
 
         user_info = OrderedDict()
 
         name_tag = soup.find("title")
-        name = ""
         if name_tag:
-            name = name_tag.text
-        user_info["Name"] = name
+            user_info["Name"] = name_tag.text
 
         tags = [
             'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday',
@@ -86,8 +83,6 @@ class FacebookSoupParser:
             if found_tag:
                 user_info[tag] = found_tag.text. \
                     replace(tag, "").replace("\n", "")
-            else:
-                user_info[tag] = ''
 
         if "Birthday" in user_info:
             parsed_birthday = user_info["Birthday"]
