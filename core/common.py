@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from collections import namedtuple
+from collections import OrderedDict
 
 CONFIG_FILENAME = "config/config.json"
 
@@ -9,7 +10,7 @@ CONFIG_KEYS = ['cookie_xs', 'user_id', 'client_id']
 Config = namedtuple('Config', CONFIG_KEYS)
 
 def prettify(decoded_json):
-    return json.dumps(decoded_json, sort_keys=True, indent=4)
+    return json.dumps(decoded_json, indent=4)
 
 def parse_config(config_json):
     """
@@ -42,7 +43,7 @@ def get_filepath(filename):
 
 def load_json_from_fd(fd):
     try:
-        return json.load(fd)
+        return json.load(fd, object_pairs_hook=OrderedDict)
 
     except Exception as e:
         logging.error("Error parsing JSON, got exception: '{0}'".format(e))
