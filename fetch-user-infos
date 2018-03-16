@@ -20,13 +20,7 @@ if __name__ == "__main__":
     downloader = Downloader()
     fbFetcher = FacebookFetcher(downloader, config)
 
-    friend_list = {}
-    try:
-        friend_list = json.load(sys.stdin)
-
-    except Exception as e:
-        logging.error("Error parsing JSON from stdin, "
-                    "got exception: '{0}'".format(e))
+    friend_list = common.load_json_from_fd(sys.stdin)
 
     if not friend_list:
         logging.error("No user ids passed on stdin")
