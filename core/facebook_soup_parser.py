@@ -33,7 +33,7 @@ class FacebookSoupParser:
         ...         </div>
         ...    </div>
         ...    ''')["Year of birth"]
-        '1984'
+        1984
         >>> FacebookSoupParser().parse_about_page('''
         ...    <div class="timeline aboutme">
         ...         <div class="dc dd dq" title="Birthday">
@@ -117,6 +117,9 @@ class FacebookSoupParser:
                 user_info["Day and month of birth"] = " ".join(
                     parsed_birthday.split(" ")[0:2])
                 user_info["Year of birth"] = parsed_birthday.split(" ")[-1]
+
+        if "Year of birth" in user_info:
+            user_info["Year of birth"] = int(user_info["Year of birth"])
 
         institution_tags = ["work", "education"]
         for institution_tag in institution_tags:
