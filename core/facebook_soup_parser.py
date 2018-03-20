@@ -20,9 +20,11 @@ class FacebookSoupParser:
 
         >>> FacebookSoupParser().parse_about_page('''
         ...    <title id="pageTitle">Mark Zuckerberg</title>
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ... ''')["Name"]
         'Mark Zuckerberg'
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div class="dc dd dq" title="Birthday">
         ...             <div class="dv">14 May 1984</div>
@@ -31,6 +33,7 @@ class FacebookSoupParser:
         ...    ''')["Birthday"]
         '14 May 1984'
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div class="dc dd dq" title="Birthday">
         ...             <div class="dv">14 May 1984</div>
@@ -39,6 +42,7 @@ class FacebookSoupParser:
         ...    ''')["Year of birth"]
         1984
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div class="dc dd dq" title="Birthday">
         ...             <div class="dv">14 May</div>
@@ -47,6 +51,7 @@ class FacebookSoupParser:
         ...    ''')["Day and month of birth"]
         '14 May'
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div class="_5cds _2lcw _5cdu" title="Gender">
         ...             <div class="_5cdv r">Male</div>
@@ -55,6 +60,19 @@ class FacebookSoupParser:
         ...    ''')["Gender"]
         'Male'
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
+        ...    <div class="timeline aboutme">
+        ...         <div class="_5cds _2lcw _5cdu" title="Gender">
+        ...             <span class="du dm x">Gender</span>
+        ...             <span aria-hidden="true"> · </span>
+        ...             <span class="dl">Edit</span>
+        ...             <div class="_5cdv r">Male</div>
+        ...         </div>
+        ...    </div>
+        ...    ''')["Gender"]
+        'Male'
+        >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div id="relationship"><div class="cq">''' + \
                     'Relationship</div><div class="cu do cv">' + \
@@ -64,6 +82,7 @@ class FacebookSoupParser:
         ...    ''')["Relationship"]
         'Married'
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div id="work">
         ...             <a class="bm" href="">
@@ -76,6 +95,7 @@ class FacebookSoupParser:
         ...    </div>''')["Work"]
         '1st work'
         >>> FacebookSoupParser().parse_about_page('''
+        ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
         ...    <div class="timeline aboutme">
         ...         <div id="education">
         ...             <a class="bm" href="">
@@ -87,8 +107,11 @@ class FacebookSoupParser:
         ...         </div>
         ...    </div>''')["Education"]
         '1st education'
-        >>> len(FacebookSoupParser().parse_about_page(""))
-        0
+        >>> FacebookSoupParser().parse_about_page('''
+        ...     <a href="/mark?v=timeline&amp;lst=1%3A12345%3A2">
+        ...         Timeline
+        ...     </a>''')["id"]
+        12345
         """
         soup = BeautifulSoup(content, "lxml")
 
@@ -97,6 +120,15 @@ class FacebookSoupParser:
         name_tag = soup.find("title")
         if name_tag:
             user_info["Name"] = name_tag.text
+
+        timeline_tag = soup.find(href=re.compile(
+            "^/.*\?v=timeline.lst=\d+%3A\d+%3A"))
+        if not timeline_tag:
+            logging.error("Failed to extract id.")
+            return None
+        user_id = int(timeline_tag.attrs["href"].split(
+            "%3A")[1])
+        user_info["id"] = user_id
 
         tags = [
             'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday',
@@ -110,7 +142,7 @@ class FacebookSoupParser:
             found_tag = soup.find("div", attrs={"title": tag})
             if found_tag:
                 user_info[tag] = found_tag.text. \
-                    replace(tag, "").replace("\n", "")
+                    replace(tag, "").replace("\n", "").replace(" · Edit", "")
 
         if "Birthday" in user_info:
             parsed_birthday = user_info["Birthday"]
