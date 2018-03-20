@@ -2,6 +2,7 @@ from collections import OrderedDict
 from datetime import datetime
 import dataset
 import logging
+import re
 
 
 def append_times(new_times, times):
@@ -112,6 +113,71 @@ def process_data(times, user_infos, set_optional_fields=False):
         parsed.append(parsed_user)
 
     return parsed
+
+
+def parse_date(date_str):
+    """
+    >>> parse_date("22 April 2011 at 20:34")
+    datetime.datetime(2011, 4, 22, 20, 34)
+    >>> parse_date("January 2017")
+    datetime.datetime(2017, 1, 1, 0, 0)
+    >>> parse_date("9 July 2011")
+    datetime.datetime(2011, 7, 9, 0, 0)
+    """
+
+    try:
+        return datetime.strptime(date_str, "%d %B %Y at %H:%M")
+
+    except Exception:
+
+        logging.info("Parsing date: {0} - date incomplete".format(date_str))
+
+        # Date is not complete, e.g. missing day / year / time
+        date_str_splitted = date_str.split(" at ")
+        fill_date = "1 January 1900"
+        fill_time = "00:00"
+
+        if len(date_str_splitted) == 2:
+            fill_date = date_str_splitted[0]
+            fill_time = date_str_splitted[1]
+        else:
+            fill_date = date_str_splitted[0]
+
+        day_found = re.match('^\d+.*', fill_date)
+        if not day_found:
+            logging.info("Parsing date: {0} - day not found".format(date_str))
+            fill_date = "{0} {1}".format(1, fill_date)
+
+        year_found = re.match('.*\d{4}.*', fill_date)
+        if not year_found:
+            logging.info(
+                "Parsing date: {0}, year not found - "
+                "assuming current year".format(date_str))
+            fill_date = "{0} {1}".format(fill_date, datetime.now().year)
+
+        try:
+            parsed_date = datetime.strptime(fill_date, "%d %B %Y")
+            parsed_time = datetime.strptime(fill_time, "%H:%M")
+            parsed_date = datetime(
+                parsed_date.year, parsed_date.month,
+                parsed_date.day, parsed_time.hour,
+                parsed_time.minute, parsed_time.second)
+
+            return parsed_date
+
+        except Exception:
+            logging.error(
+                "Parsing date: {0} - failed to deduce date".format(date_str))
+
+    return datetime(1900, 1, 1, 0, 0)
+
+
+def date_to_epoch(date):
+    """
+    >>> date_to_epoch(datetime(2011, 4, 22, 20, 34))
+    1303497240
+    """
+    return (int)(date.strftime("%s"))
 
 
 def save_to_db(data, database_path):
