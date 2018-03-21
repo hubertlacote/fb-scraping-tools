@@ -26,6 +26,12 @@ if __name__ == "__main__":
         logging.error("No user ids passed on stdin")
         sys.exit(1)
 
-    infos = fbFetcher.fetch_user_infos(friend_list.keys())
+    ids = []
+    if type(friend_list) == dict:
+        ids = friend_list.keys
+    else:
+        ids = friend_list
+
+    infos = fbFetcher.fetch_user_infos(ids)
 
     print(common.prettify(infos))
