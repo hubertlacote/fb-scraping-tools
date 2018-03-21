@@ -173,9 +173,10 @@ class FacebookFetcher:
             format(len(user_ids)))
 
         infos = {}
-        for user_id in user_ids:
+        for user_no, user_id in enumerate(user_ids, 1):
 
-            logging.info("Processing {0}".format(user_id))
+            logging.info("Processing {0} - {1}/{2}".format(
+                user_id, user_no, len(user_ids)))
 
             is_id = re.match("^\d+$", str(user_id))
             if is_id or "profile.php?id=" in user_id:
