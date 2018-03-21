@@ -36,6 +36,14 @@ def create_not_found_return_value():
     )
 
 
+def create_service_unavailable_return_value():
+    return Fake_Return_Value(
+        status_code=503,
+        text="Service Unavailable",
+        headers="Some headers"
+    )
+
+
 @patch("core.downloader.requests.get")
 def test_url_is_passed(mock_requests):
     downloader = Downloader()
@@ -186,6 +194,25 @@ def test_retries_when_timeout_then_ok(mock_requests):
 
     mock_requests.side_effect = [
         requests.exceptions.Timeout(),
+        create_ok_return_value()
+    ]
+
+    res = downloader.fetch_url(FAKE_COOKIE, FAKE_URL, retries=3)
+
+    assert res == create_ok_return_value()
+
+    mock_requests.assert_has_calls([
+        call(url=ANY, headers=ANY, allow_redirects=ANY, timeout=ANY),
+        call(url=ANY, headers=ANY, allow_redirects=ANY, timeout=ANY)
+    ])
+
+
+@patch("core.downloader.requests.get")
+def test_retries_when_service_unavailable_then_ok(mock_requests):
+    downloader = Downloader()
+
+    mock_requests.side_effect = [
+        create_service_unavailable_return_value(),
         create_ok_return_value()
     ]
 

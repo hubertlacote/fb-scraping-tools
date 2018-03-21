@@ -29,6 +29,10 @@ class Downloader:
                     url=url, headers=headers,
                     allow_redirects=True, timeout=timeout_secs)
 
+                # Treat server errors as timeout so that retries are performed
+                if response.status_code >= 500:
+                    raise requests.exceptions.Timeout()
+
                 if response.status_code != 200 or not response.text:
                     raise RuntimeError(
                         "Error while downloading page '{0}', "
