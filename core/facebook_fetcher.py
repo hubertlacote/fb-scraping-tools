@@ -154,6 +154,9 @@ class FacebookFetcher:
 
                 user_infos = self.fbParser.parse_about_page(
                     response.text)
+                if not user_infos:
+                    raise RuntimeError(
+                        "Failed to extract infos for user {0}".format(user_id))
                 infos[user_id] = user_infos
 
                 logging.info("Got infos for user '{0}' - {1}".format(
