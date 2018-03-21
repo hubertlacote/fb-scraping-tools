@@ -8,7 +8,7 @@ import logging
 
 if __name__ == "__main__":
 
-    common.configure_logging(logging.WARN)
+    common.configure_logging(logging.INFO)
     config = common.load_config()
     downloader = Downloader()
     fbFetcher = FacebookFetcher(downloader, config)
