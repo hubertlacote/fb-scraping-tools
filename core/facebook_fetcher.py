@@ -5,6 +5,7 @@ from core import common
 from collections import OrderedDict
 import json
 import logging
+import re
 
 
 def parse_buddy_list(raw_json):
@@ -71,13 +72,18 @@ def build_buddy_feed_url(user_id, client_id):
 
 
 def build_friends_page_url(page_no):
-    return "https://m.facebook.com/friends/center/friends/?ppk={0}". \
+    return "https://mbasic.facebook.com/friends/center/friends/?ppk={0}". \
         format(page_no)
 
 
-def build_about_page_url(user_id):
-    return "https://m.facebook.com/profile.php?v=info&id={0}". \
+def build_about_page_url_from_id(user_id):
+    return "https://mbasic.facebook.com/profile.php?v=info&id={0}". \
         format(user_id)
+
+
+def build_about_page_url_from_username(username):
+    return "https://mbasic.facebook.com/{0}/about". \
+        format(username)
 
 
 class FacebookFetcher:
@@ -147,7 +153,15 @@ class FacebookFetcher:
         infos = {}
         for user_id in user_ids:
 
-            url = build_about_page_url(user_id)
+            logging.info("Processing {0}".format(user_id))
+
+            is_id = re.match("^\d+$", str(user_id))
+            if is_id or "profile.php?id=" in user_id:
+                url = build_about_page_url_from_id(
+                    str(user_id).replace("profile.php?id=", ""))
+            else:
+                url = build_about_page_url_from_username(user_id)
+
             try:
                 response = self.downloader.fetch_url(
                     self.cookie, url, timeout_secs=15, retries=5)
