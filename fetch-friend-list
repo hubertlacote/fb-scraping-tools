@@ -20,5 +20,3 @@ if __name__ == "__main__":
     logging.info("Found {0} friend(s)".format(len(friend_list)))
 
     print(common.prettify(friend_list))
-
-

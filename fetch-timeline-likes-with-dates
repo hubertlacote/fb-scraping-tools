@@ -49,7 +49,8 @@ if __name__ == "__main__":
     common.configure_logging(logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', dest='username', action='store',
+    parser.add_argument(
+        '-u', dest='username', action='store',
         help="Facebook username, e.g. zuck for Mark Zuckerberg")
     args = parser.parse_args()
 

@@ -20,7 +20,7 @@ if __name__ == "__main__":
 
     while True:
 
-        new_times = fbFetcher.fetch_last_active_times(retries = 5)
+        new_times = fb_fetcher.fetch_last_active_times(retries=5)
 
         changes = model.append_times(
             new_times, last_active_times)
@@ -28,6 +28,6 @@ if __name__ == "__main__":
         if changes:
             logging.info("Saving changes to file")
             with open(times_filepath, "w") as f:
-                json.dump(last_active_times, f,  indent=4)
+                json.dump(last_active_times, f, indent=4)
 
         time.sleep(60 * 5)

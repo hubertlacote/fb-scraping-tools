@@ -12,7 +12,8 @@ if __name__ == "__main__":
     common.configure_logging(logging.WARN)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-u', dest='user_infos_filepath', action='store',
+    parser.add_argument(
+        '-u', dest='user_infos_filepath', action='store',
         help="JSON file containing a mapping from user ids to names")
     args = parser.parse_args()
 
