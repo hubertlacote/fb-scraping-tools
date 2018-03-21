@@ -86,6 +86,16 @@ def build_about_page_url_from_username(username):
         format(username)
 
 
+def build_timeline_page_url(user_id):
+    return "https://mbasic.facebook.com/{0}?v=timeline". \
+        format(user_id)
+
+
+def build_relative_url(relative_url):
+    return "https://mbasic.facebook.com{0}". \
+        format(relative_url)
+
+
 class FacebookFetcher:
 
     def __init__(self, downloader, config):
@@ -182,3 +192,59 @@ class FacebookFetcher:
                     "got exception: '{1}'".format(url, e))
 
         return infos
+
+    def fetch_articles_from_timeline(self, user_id):
+        """ Return a dictionary mapping article id to time of the post."""
+
+        logging.info(
+            "Fetching timeline for user '{0}' from Facebook".
+            format(user_id))
+
+        articles_found = OrderedDict()
+
+        links_to_explore = [build_timeline_page_url(user_id)]
+        links_explored = 0
+
+        while links_to_explore:
+
+            url = links_to_explore.pop()
+
+            logging.info("Exploring link {0} - {1} left after".format(
+                links_explored + 1, len(links_to_explore)))
+
+            try:
+
+                response = self.downloader.fetch_url(
+                    self.cookie, url, timeout_secs=15, retries=5)
+
+                if links_explored == 0:
+                    links = self.fbParser.parse_years_links_from_timeline_page(
+                        response.text)
+                    logging.info("Found {0} year links to explore".format(
+                        len(links)))
+                    full_links = [build_relative_url(link) for link in links]
+                    links_to_explore.extend(full_links)
+
+                result = self.fbParser.parse_timeline_page(response.text)
+                if not result:
+                    raise RuntimeError("Failed to parse timeline - no result")
+
+                for article_id in result.articles:
+                    logging.info("Found article {0} - date: {1}".format(
+                        article_id, result.articles[article_id]))
+
+                articles_found.update(result.articles)
+
+                show_more_link = result.show_more_link
+                if show_more_link:
+                    logging.info("Found show more link")
+                    links_to_explore.append(build_relative_url(show_more_link))
+
+            except Exception as e:
+                logging.error(
+                    "Error while downloading page '{0}', "
+                    "got exception: '{1}'".format(url, e))
+
+            links_explored += 1
+
+        return articles_found
