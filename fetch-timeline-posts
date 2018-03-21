@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+
+from core import common
+from core.downloader import Downloader
+from core.facebook_fetcher import FacebookFetcher
+
+import argparse
+import logging
+import sys
+
+import requests_cache
+
+if __name__ == "__main__":
+
+    common.configure_logging(logging.INFO)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-u', dest='username', action='store',
+        help="Facebook username, e.g. zuck for Mark Zuckerberg")
+    args = parser.parse_args()
+
+    if not args.username:
+        parser.print_help()
+        sys.exit(1)
+
+    # Enable caching (2 hrs) to avoid hitting Facebook too much
+    requests_cache.install_cache(expire_after=7200)
+
+    config = common.load_config()
+    downloader = Downloader()
+    fbFetcher = FacebookFetcher(downloader, config)
+
+    timeline_likes = fbFetcher.fetch_articles_from_timeline(args.username)
+
+    print(common.prettify(timeline_likes))
