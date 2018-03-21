@@ -118,7 +118,7 @@ class FacebookFetcher:
             url = build_friends_page_url(page_no)
             try:
                 response = self.downloader.fetch_url(
-                    self.cookie, url, timeout_secs=15)
+                    self.cookie, url, timeout_secs=15, retries=5)
 
                 friends_found = self.fbParser.parse_friends_page(
                     response.text)
@@ -150,7 +150,7 @@ class FacebookFetcher:
             url = build_about_page_url(user_id)
             try:
                 response = self.downloader.fetch_url(
-                    self.cookie, url, timeout_secs=15)
+                    self.cookie, url, timeout_secs=15, retries=5)
 
                 user_infos = self.fbParser.parse_about_page(
                     response.text)
