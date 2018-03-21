@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 from core import common
-from core import facebook_fetcher
 from core import model
-from core.downloader import Downloader
+from core.facebook_fetcher import create_production_fetcher
 
 from datetime import datetime
 import json
@@ -13,9 +12,8 @@ import time
 if __name__ == "__main__":
 
     common.configure_logging(logging.WARN)
-    config = common.load_config()
-    downloader = Downloader()
-    fbFetcher = facebook_fetcher.FacebookFetcher(downloader, config)
+
+    fb_fetcher = create_production_fetcher()
 
     times_filepath = common.get_filepath("times.json")
     last_active_times = {}

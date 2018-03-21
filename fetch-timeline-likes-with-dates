@@ -2,15 +2,13 @@
 
 from core import common
 from core import model
-from core.downloader import Downloader
-from core.facebook_fetcher import FacebookFetcher
-from collections import OrderedDict
+from core.facebook_fetcher import create_production_fetcher
 
+from collections import OrderedDict
 import argparse
 import logging
-import sys
-
 import requests_cache
+import sys
 
 
 def fetch_timeline_likes(fb_fetcher, user_id):
@@ -62,10 +60,8 @@ if __name__ == "__main__":
     # Enable caching (2 hrs) to avoid hitting Facebook too much
     requests_cache.install_cache(expire_after=7200)
 
-    config = common.load_config()
-    downloader = Downloader()
-    fbFetcher = FacebookFetcher(downloader, config)
+    fb_fetcher = create_production_fetcher()
 
-    timeline_likes = fetch_timeline_likes(fbFetcher, args.username)
+    timeline_likes = fetch_timeline_likes(fb_fetcher, args.username)
 
     print(common.prettify(timeline_likes))

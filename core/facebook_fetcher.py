@@ -8,6 +8,15 @@ import logging
 import re
 
 
+def create_production_fetcher():
+
+    downloader = Downloader()
+    fb_parser = FacebookSoupParser()
+    config = common.load_config()
+
+    return FacebookFetcher(downloader, fb_parser, config)
+
+
 def parse_buddy_list(raw_json):
     """
     >>> parse_buddy_list('for (;;); {"ms": [{"type": "chatproxy-presence", '
@@ -110,9 +119,9 @@ def build_relative_url(relative_url):
 
 class FacebookFetcher:
 
-    def __init__(self, downloader, config):
+    def __init__(self, downloader, fb_parser, config):
         self.downloader = downloader
-        self.fbParser = FacebookSoupParser()
+        self.fb_parser = fb_parser
         self.cookie = common.build_cookie(config)
         self.buddy_feed_url = build_buddy_feed_url(
             config.user_id, config.client_id)
@@ -148,7 +157,7 @@ class FacebookFetcher:
                 response = self.downloader.fetch_url(
                     self.cookie, url, timeout_secs=15, retries=5)
 
-                friends_found = self.fbParser.parse_friends_page(
+                friends_found = self.fb_parser.parse_friends_page(
                     response.text)
                 friend_list.update(friends_found)
                 if not friends_found:
@@ -189,7 +198,7 @@ class FacebookFetcher:
                 response = self.downloader.fetch_url(
                     self.cookie, url, timeout_secs=15, retries=5)
 
-                user_infos = self.fbParser.parse_about_page(
+                user_infos = self.fb_parser.parse_about_page(
                     response.text)
                 if not user_infos:
                     raise RuntimeError(
@@ -231,14 +240,15 @@ class FacebookFetcher:
                     self.cookie, url, timeout_secs=15, retries=5)
 
                 if links_explored == 0:
-                    links = self.fbParser.parse_years_links_from_timeline_page(
-                        response.text)
+                    links = \
+                        self.fb_parser.parse_years_links_from_timeline_page(
+                            response.text)
                     logging.info("Found {0} year links to explore".format(
                         len(links)))
                     full_links = [build_relative_url(link) for link in links]
                     links_to_explore.extend(full_links)
 
-                result = self.fbParser.parse_timeline_page(response.text)
+                result = self.fb_parser.parse_timeline_page(response.text)
                 if not result:
                     raise RuntimeError("Failed to parse timeline - no result")
 
@@ -287,7 +297,7 @@ class FacebookFetcher:
                 response = self.downloader.fetch_url(
                     self.cookie, article_url, timeout_secs=15, retries=5)
 
-                usernames = self.fbParser.parse_reaction_page(
+                usernames = self.fb_parser.parse_reaction_page(
                         response.text)
                 logging.info("Article got {0} like(s): {1}".format(
                     len(usernames), usernames))

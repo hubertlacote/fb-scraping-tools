@@ -1,24 +1,21 @@
 #!/usr/bin/env python3
 
 from core import common
-from core.downloader import Downloader
-from core.facebook_fetcher import FacebookFetcher
+from core.facebook_fetcher import create_production_fetcher
 
 import logging
-
 import requests_cache
 
 if __name__ == "__main__":
 
+    common.configure_logging(logging.INFO)
+
     # Enable caching (2 hrs) to avoid hitting Facebook too much
     requests_cache.install_cache(expire_after=7200)
 
-    common.configure_logging(logging.INFO)
-    config = common.load_config()
-    downloader = Downloader()
-    fbFetcher = FacebookFetcher(downloader, config)
+    fb_fetcher = create_production_fetcher()
 
-    friend_list = fbFetcher.fetch_friend_list()
+    friend_list = fb_fetcher.fetch_friend_list()
 
     logging.info("Found {0} friend(s)".format(len(friend_list)))
 

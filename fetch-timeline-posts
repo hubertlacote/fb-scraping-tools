@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 from core import common
-from core.downloader import Downloader
-from core.facebook_fetcher import FacebookFetcher
+from core.facebook_fetcher import create_production_fetcher
 
 import argparse
 import logging
+import requests_cache
 import sys
 
-import requests_cache
 
 if __name__ == "__main__":
 
@@ -26,10 +25,8 @@ if __name__ == "__main__":
     # Enable caching (2 hrs) to avoid hitting Facebook too much
     requests_cache.install_cache(expire_after=7200)
 
-    config = common.load_config()
-    downloader = Downloader()
-    fbFetcher = FacebookFetcher(downloader, config)
+    fb_fetcher = create_production_fetcher()
 
-    timeline_likes = fbFetcher.fetch_articles_from_timeline(args.username)
+    timeline_likes = fb_fetcher.fetch_articles_from_timeline(args.username)
 
     print(common.prettify(timeline_likes))

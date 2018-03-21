@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 from core import common
-from core.downloader import Downloader
-from core.facebook_fetcher import FacebookFetcher
+from core.facebook_fetcher import create_production_fetcher
 
 import json
 import logging
@@ -12,13 +11,12 @@ import requests_cache
 
 if __name__ == "__main__":
 
+    common.configure_logging(logging.INFO)
+
     # Enable caching (2 hrs) to avoid hitting Facebook too much
     requests_cache.install_cache(expire_after=7200)
 
-    common.configure_logging(logging.INFO)
-    config = common.load_config()
-    downloader = Downloader()
-    fbFetcher = FacebookFetcher(downloader, config)
+    fb_fetcher = create_production_fetcher()
 
     friend_list = common.load_json_from_fd(sys.stdin)
 
@@ -32,6 +30,6 @@ if __name__ == "__main__":
     else:
         ids = friend_list
 
-    infos = fbFetcher.fetch_user_infos(ids)
+    infos = fb_fetcher.fetch_user_infos(ids)
 
     print(common.prettify(infos))
