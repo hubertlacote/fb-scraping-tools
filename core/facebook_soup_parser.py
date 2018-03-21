@@ -9,6 +9,16 @@ import re
 TimelineResult = namedtuple('TimelineResult', ['articles', 'show_more_link'])
 
 
+def detect_and_log_error_type(soup):
+
+    login_found = soup.find("input", attrs={"name": "login"})
+
+    if login_found:
+        logging.error("Cookie expired or is invalid, login requested.")
+    else:
+        logging.error("Failed to parse page")
+
+
 class FacebookSoupParser:
 
     def parse_about_page(self, content):
@@ -112,6 +122,8 @@ class FacebookSoupParser:
         ...         Timeline
         ...     </a>''')["id"]
         12345
+        >>> FacebookSoupParser().parse_about_page('''
+        ...     <input name="login" type="submit" value="Log In">''')
         """
         soup = BeautifulSoup(content, "lxml")
 
@@ -124,8 +136,10 @@ class FacebookSoupParser:
         timeline_tag = soup.find(href=re.compile(
             "^/.*\?v=timeline.lst=\d+%3A\d+%3A"))
         if not timeline_tag:
-            logging.error("Failed to extract id.")
+
+            detect_and_log_error_type(soup)
             return None
+
         user_id = int(timeline_tag.attrs["href"].split(
             "%3A")[1])
         user_info["id"] = user_id
@@ -217,6 +231,9 @@ class FacebookSoupParser:
         OrderedDict()
         >>> FacebookSoupParser().parse_friends_page("")
         OrderedDict()
+        >>> FacebookSoupParser().parse_friends_page('''
+        ...     <input name="login" type="submit" value="Log In">''')
+        OrderedDict()
         """
 
         soup = BeautifulSoup(content, "lxml")
@@ -225,7 +242,8 @@ class FacebookSoupParser:
 
         main_soup = soup.find(id="friends_center_main")
         if not main_soup:
-            logging.error("Failed to parse friends page")
+
+            detect_and_log_error_type(soup)
             return friends_found
 
         links_soup = main_soup.find_all("a")
@@ -260,11 +278,7 @@ class FacebookSoupParser:
         main_soup = soup.find(id="tlFeed")
         if not main_soup:
 
-            login_found = soup.find("input", attrs={"name": "login"})
-            if login_found:
-                logging.error("Cookie expired or is invalid, login requested.")
-            else:
-                logging.error("Failed to parse timeline page")
+            detect_and_log_error_type(soup)
             return links_found
 
         links_soup = main_soup.find_all('a')
@@ -323,11 +337,7 @@ show_more_link='')
         main_soup = soup.find(id="tlFeed")
         if not main_soup:
 
-            login_found = soup.find("input", attrs={"name": "login"})
-            if login_found:
-                logging.error("Cookie expired or is invalid, login requested.")
-            else:
-                logging.error("Failed to parse timeline page")
+            detect_and_log_error_type(soup)
             return None
 
         articles_found = OrderedDict()
@@ -393,11 +403,7 @@ show_more_link='')
         main_soup = soup.find(id="objects_container")
         if not main_soup:
 
-            login_found = soup.find("input", attrs={"name": "login"})
-            if login_found:
-                logging.error("Cookie expired or is invalid, login requested.")
-            else:
-                logging.error("Failed to parse timeline page")
+            detect_and_log_error_type(soup)
             return None
 
         links_soup = main_soup.find_all(href=re.compile("^/.*"))
