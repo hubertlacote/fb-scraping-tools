@@ -91,6 +91,18 @@ def build_timeline_page_url(user_id):
         format(user_id)
 
 
+def build_reaction_page_url(article_id, max_likes):
+    """
+    >>> build_reaction_page_url(123, 500)
+    'https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?\
+limit=500&total_count=500&ft_ent_identifier=123'
+    """
+    return \
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" + \
+        "limit={0}&total_count={0}&".format(max_likes) + \
+        "ft_ent_identifier={0}".format(article_id)
+
+
 def build_relative_url(relative_url):
     return "https://mbasic.facebook.com{0}". \
         format(relative_url)
@@ -248,3 +260,45 @@ class FacebookFetcher:
             links_explored += 1
 
         return articles_found
+
+    def fetch_articles_liked_per_user(self, articles_id):
+        """ Return an OrderedDict mapping user ids to a set of articles id.
+
+        e.g. OrderedDict([('username1', {articleid1, articleid2, ...}), ])
+        """
+
+        articles_liked_per_user = OrderedDict()
+
+        logging.info(
+                "Fetching reactions for {0} articles".format(
+                    len(articles_id)))
+
+        for articles_processed, article_id in enumerate(articles_id):
+
+            article_url = build_reaction_page_url(article_id, 10000)
+
+            logging.info(
+                "Fetching reactions for article {0}/{1} - id: '{2}'".format(
+                    articles_processed + 1, len(articles_id), article_id))
+
+            try:
+
+                response = self.downloader.fetch_url(
+                    self.cookie, article_url, timeout_secs=15, retries=5)
+
+                usernames = self.fbParser.parse_reaction_page(
+                        response.text)
+                logging.info("Article got {0} like(s): {1}".format(
+                    len(usernames), usernames))
+
+                for username in usernames:
+                    if username not in articles_liked_per_user:
+                        articles_liked_per_user[username] = set()
+                    articles_liked_per_user[username].add(article_id)
+
+            except Exception as e:
+                logging.error(
+                    "Error while downloading page '{0}', "
+                    "got exception: '{1}'".format(article_url, e))
+
+        return articles_liked_per_user
