@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # Enable caching (2 hrs) to avoid hitting Facebook too much
     requests_cache.install_cache(expire_after=7200)
 
-    common.configure_logging(logging.WARN)
+    common.configure_logging(logging.INFO)
     config = common.load_config()
     downloader = Downloader()
     fbFetcher = FacebookFetcher(downloader, config)
