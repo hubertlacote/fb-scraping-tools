@@ -134,7 +134,7 @@ class FacebookFetcher:
 
         try:
             response = self.downloader.fetch_url(
-                self.cookie, self.buddy_feed_url,
+                cookie=self.cookie, url=self.buddy_feed_url,
                 timeout_secs=15, retries=5)
 
             return parse_buddy_list(response.text)
@@ -155,7 +155,7 @@ class FacebookFetcher:
             url = build_friends_page_url(page_no)
             try:
                 response = self.downloader.fetch_url(
-                    self.cookie, url, timeout_secs=15, retries=5)
+                    cookie=self.cookie, url=url, timeout_secs=15, retries=5)
 
                 friends_found = self.fb_parser.parse_friends_page(
                     response.text)
@@ -196,7 +196,7 @@ class FacebookFetcher:
 
             try:
                 response = self.downloader.fetch_url(
-                    self.cookie, url, timeout_secs=15, retries=5)
+                    cookie=self.cookie, url=url, timeout_secs=15, retries=5)
 
                 user_infos = self.fb_parser.parse_about_page(
                     response.text)
@@ -238,7 +238,7 @@ class FacebookFetcher:
             try:
 
                 response = self.downloader.fetch_url(
-                    self.cookie, url, timeout_secs=15, retries=5)
+                    cookie=self.cookie, url=url, timeout_secs=15, retries=5)
 
                 if links_explored == 0:
                     links = \
@@ -296,7 +296,8 @@ class FacebookFetcher:
             try:
 
                 response = self.downloader.fetch_url(
-                    self.cookie, article_url, timeout_secs=15, retries=5)
+                    cookie=self.cookie, url=article_url,
+                    timeout_secs=15, retries=5)
 
                 usernames = self.fb_parser.parse_reaction_page(
                         response.text)
