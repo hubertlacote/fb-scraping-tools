@@ -95,9 +95,9 @@ def build_about_page_url_from_username(username):
         format(username)
 
 
-def build_timeline_page_url(user_id):
+def build_timeline_page_url(username):
     return "https://mbasic.facebook.com/{0}?v=timeline". \
-        format(user_id)
+        format(username)
 
 
 def build_reaction_page_url(article_id, max_likes):
@@ -215,16 +215,16 @@ class FacebookFetcher:
 
         return infos
 
-    def fetch_articles_from_timeline(self, user_id):
+    def fetch_articles_from_timeline(self, username):
         """ Return a dictionary mapping article id to time of the post."""
 
         logging.info(
             "Fetching timeline for user '{0}' from Facebook".
-            format(user_id))
+            format(username))
 
         articles_found = OrderedDict()
 
-        links_to_explore = [build_timeline_page_url(user_id)]
+        links_to_explore = [build_timeline_page_url(username)]
         links_explored = 0
 
         while links_to_explore:
