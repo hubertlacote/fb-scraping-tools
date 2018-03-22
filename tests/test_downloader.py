@@ -1,5 +1,8 @@
 from collections import namedtuple
 from core.downloader import Downloader
+from tests.fakes import \
+    create_ok_return_value, create_ok_return_value_without_text, \
+    create_not_found_return_value, create_service_unavailable_return_value
 
 from unittest.mock import call, patch, ANY
 
@@ -7,41 +10,6 @@ import requests
 
 FAKE_URL = "http://fake.url"
 FAKE_COOKIE = "fake cookie"
-
-Fake_Return_Value = namedtuple(
-    'FakeReturnValue', ['status_code', 'text', 'headers'])
-
-
-def create_ok_return_value():
-    return Fake_Return_Value(
-        status_code=200,
-        text="not empty",
-        headers="Some headers"
-    )
-
-
-def create_ok_return_value_without_text():
-    return Fake_Return_Value(
-        status_code=200,
-        text="",
-        headers="Some headers"
-    )
-
-
-def create_not_found_return_value():
-    return Fake_Return_Value(
-        status_code=404,
-        text="Page not found",
-        headers="Some headers"
-    )
-
-
-def create_service_unavailable_return_value():
-    return Fake_Return_Value(
-        status_code=503,
-        text="Service Unavailable",
-        headers="Some headers"
-    )
 
 
 @patch("core.downloader.requests.get")
