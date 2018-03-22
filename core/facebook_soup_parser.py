@@ -1,7 +1,9 @@
+from core import common
+
 from bs4 import BeautifulSoup
 from collections import namedtuple
 from collections import OrderedDict
-
+import json
 import logging
 import re
 
@@ -20,6 +22,61 @@ def detect_and_log_error_type(soup):
 
 
 class FacebookSoupParser:
+
+    def parse_buddy_list(self, raw_json):
+        """
+        >>> FacebookSoupParser().parse_buddy_list(
+        ... 'for (;;); {"ms": [{"type": "chatproxy-presence", '
+        ... '"userIsIdle": false, "chatNotif": 0, "gamers": [], "buddyList": {'
+        ... '"111": {"lat": 1500000001}, '
+        ... '"222": {"lat": 1500000002}}}, {"type": "buddylist_overlay",'
+        ...  '"overlay": {"333": {"la": 1500000003, "a": 0, "vc": 0, "s":'
+        ... '"push"}}}], "t": "msg", "u": 123, "seq": 3}')
+        OrderedDict([('111', [1500000001]), ('222', [1500000002])])
+        >>> FacebookSoupParser().parse_buddy_list("")
+        OrderedDict()
+        >>> FacebookSoupParser().parse_buddy_list(
+        ... '{ "overlay": { "111": { '
+        ... '"a": 0, "c": 74, "la": 1500000003, "s": "push", "vc": 74 }}, '
+        ... '"type": "buddylist_overlay"}')
+        OrderedDict()
+        >>> FacebookSoupParser().parse_buddy_list(
+        ... '{ "seq": 1, "t": "fullReload" }')
+        OrderedDict()
+        """
+        valid_raw_json = raw_json.replace("for (;;); ", "")
+        decoded_json = ""
+        try:
+            decoded_json = json.loads(valid_raw_json)
+        except Exception as e:
+            logging.error(
+                "Failed to decode JSON: '{0}', got exception:"
+                " '{1}'".format(valid_raw_json, e))
+            return OrderedDict()
+
+        logging.debug("Got json: '{0}'".format(common.prettify(decoded_json)))
+        if "ms" not in decoded_json:
+            logging.error("Invalid json returned - not found 'ms'")
+            logging.debug("Got instead: {0}".format(
+                common.prettify(decoded_json)))
+            return OrderedDict()
+
+        flattened_json = {}
+        for item in decoded_json["ms"]:
+            flattened_json.update(item)
+        if "buddyList" not in flattened_json:
+            logging.error("Invalid json returned - not found 'buddyList'")
+            logging.debug("Got instead: {0}".format(
+                common.prettify(flattened_json)))
+            return OrderedDict()
+
+        buddy_list = flattened_json["buddyList"]
+        flattened_buddy_list = {}
+        for user in buddy_list:
+            if "lat" in buddy_list[user]:
+                flattened_buddy_list[user] = [buddy_list[user]["lat"]]
+
+        return OrderedDict(sorted(flattened_buddy_list.items()))
 
     def parse_about_page(self, content):
         """Extract information from the mobile version of the about page.
