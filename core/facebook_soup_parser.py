@@ -256,9 +256,9 @@ class FacebookSoupParser:
 
         return friends_found
 
-    def parse_years_links_from_timeline_page(self, content):
+    def parse_timeline_years_links(self, content):
         """
-        >>> FacebookSoupParser().parse_years_links_from_timeline_page('''
+        >>> FacebookSoupParser().parse_timeline_years_links('''
         ...     <div id="tlFeed">
         ...         <a class="bn" href="badLink1">Mark</a>
         ...         <a href="link1">2010</a>
@@ -266,7 +266,7 @@ class FacebookSoupParser:
         ...         <a class="bn" href="badLink2">Dave</a>
         ...     </div>''')
         ['link1', 'link2']
-        >>> FacebookSoupParser().parse_years_links_from_timeline_page('''
+        >>> FacebookSoupParser().parse_timeline_years_links('''
         ...     <input name="login" type="submit" value="Log In">''')
         []
         """

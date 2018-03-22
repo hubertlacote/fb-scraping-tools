@@ -241,7 +241,7 @@ class FacebookFetcher:
 
                 if links_explored == 0:
                     links = \
-                        self.fb_parser.parse_years_links_from_timeline_page(
+                        self.fb_parser.parse_timeline_years_links(
                             response.text)
                     logging.info("Found {0} year links to explore".format(
                         len(links)))
