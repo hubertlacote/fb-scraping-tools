@@ -35,3 +35,8 @@ def create_service_unavailable_return_value():
         text="Service Unavailable",
         headers="Some headers"
     )
+
+
+def create_fake_config():
+    return common.Config(
+        cookie_xs="abc", user_id="123", client_id="456a")
