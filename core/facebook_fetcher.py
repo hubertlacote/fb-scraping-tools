@@ -231,8 +231,9 @@ class FacebookFetcher:
 
             url = links_to_explore.pop()
 
-            logging.info("Exploring link {0} - {1} left after".format(
-                links_explored + 1, len(links_to_explore)))
+            logging.info(
+                "Exploring link {0} - {1} left after, url: {2}".format(
+                    links_explored + 1, len(links_to_explore), url))
 
             try:
 
