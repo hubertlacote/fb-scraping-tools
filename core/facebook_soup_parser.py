@@ -267,6 +267,22 @@ class FacebookSoupParser:
         ...     </div>''')
         ['link1', 'link2']
         >>> FacebookSoupParser().parse_timeline_years_links('''
+        ...     <div id="timelineBody">
+        ...         <a class="bn" href="badLink1">Mark</a>
+        ...         <a href="link1">2010</a>
+        ...         <a href="link2">2009</a>
+        ...         <a class="bn" href="badLink2">Dave</a>
+        ...     </div>''')
+        ['link1', 'link2']
+        >>> FacebookSoupParser().parse_timeline_years_links('''
+        ...     <div id="m_group_stories_container">
+        ...         <a class="bn" href="badLink1">Mark</a>
+        ...         <a href="link1">2010</a>
+        ...         <a href="link2">2009</a>
+        ...         <a class="bn" href="badLink2">Dave</a>
+        ...     </div>''')
+        ['link1', 'link2']
+        >>> FacebookSoupParser().parse_timeline_years_links('''
         ...     <input name="login" type="submit" value="Log In">''')
         []
         """
@@ -275,7 +291,8 @@ class FacebookSoupParser:
 
         links_found = []
 
-        main_soup = soup.find(id="tlFeed")
+        main_soup = soup.find(
+            id=["tlFeed", "timelineBody", "m_group_stories_container"])
         if not main_soup:
 
             detect_and_log_error_type(soup)
@@ -315,7 +332,21 @@ class FacebookSoupParser:
         TimelineResult(articles=OrderedDict([(1, '13 May 2008 at 10:02'), \
 (2, '13 May 2008 at 10:25')]), show_more_link='/show_more_link')
         >>> FacebookSoupParser().parse_timeline_page('''
-        ...     <div id="tlFeed">
+        ...     <div id="timelineBody">
+        ...         <div role="article">
+        ...             <div role="article">
+        ...             </div>
+        ...             <abbr>13 May 2008 at 10:02</abbr>
+        ...             <span id="like_1">
+        ...                 <a href="/link1">Like</a>
+        ...                 <a href="/badLink1">React</a>
+        ...             </span>
+        ...         </div>
+        ...     </div>''')
+        TimelineResult(articles=OrderedDict([(1, '13 May 2008 at 10:02')]), \
+show_more_link='')
+        >>> FacebookSoupParser().parse_timeline_page('''
+        ...     <div id="m_group_stories_container">
         ...         <div role="article">
         ...             <div role="article">
         ...             </div>
@@ -334,14 +365,14 @@ show_more_link='')
 
         soup = BeautifulSoup(content, "lxml")
 
-        main_soup = soup.find(id="tlFeed")
+        main_soup = soup.find(
+            id=["tlFeed", "timelineBody", "m_group_stories_container"])
         if not main_soup:
 
             detect_and_log_error_type(soup)
             return None
 
         articles_found = OrderedDict()
-
         articles_soup = main_soup.find_all("div", attrs={"role": "article"})
         for article in articles_soup:
 
@@ -365,7 +396,8 @@ show_more_link='')
                         article_id, articles_found[article_id], abbr_tag.text))
             articles_found[article_id] = abbr_tag.text
 
-        show_more_link_tag = soup.find("a", string="Show more")
+        show_more_link_tag = soup.find(
+            "a", string=["Show more", "See more posts"])
         link_found = ""
         if show_more_link_tag and "href" in show_more_link_tag.attrs:
             link_found = show_more_link_tag.attrs["href"]
