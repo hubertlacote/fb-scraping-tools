@@ -16,6 +16,7 @@ if __name__ == "__main__":
         '-u', dest='user_infos_filepath', action='store',
         help="JSON file containing a mapping from user ids to names")
     parser.add_argument('-d', dest='denormalize', action='store_true')
+    parser.add_argument('-m', dest='minify', action='store_true')
     args = parser.parse_args()
 
     if not args.user_infos_filepath:
@@ -33,4 +34,7 @@ if __name__ == "__main__":
     parsed = model.process_data(
         last_active_times, user_infos, True, args.denormalize)
 
-    print(common.prettify(parsed))
+    if args.minify:
+        print(common.prettify(parsed, indent=None))
+    else:
+        print(common.prettify(parsed))

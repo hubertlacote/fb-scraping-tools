@@ -10,8 +10,8 @@ CONFIG_KEYS = ['cookie_xs', 'user_id', 'client_id']
 Config = namedtuple('Config', CONFIG_KEYS)
 
 
-def prettify(decoded_json):
-    return json.dumps(decoded_json, indent=4)
+def prettify(decoded_json, indent=4):
+    return json.dumps(decoded_json, indent=indent)
 
 
 def parse_config(config_json):
