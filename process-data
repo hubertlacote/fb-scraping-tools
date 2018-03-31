@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from core import common
-from core import facebook_fetcher
+from core import model
 
 import argparse
 import logging
@@ -28,6 +28,6 @@ if __name__ == "__main__":
         logging.error("No times passed on stdin")
         sys.exit(1)
 
-    parsed = facebook_fetcher.process_data(last_active_times, user_infos)
+    parsed = model.process_data(last_active_times, user_infos, True)
 
     print(common.prettify(parsed))

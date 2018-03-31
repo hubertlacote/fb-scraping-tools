@@ -2,6 +2,7 @@
 
 from core import common
 from core import facebook_fetcher
+from core import model
 from core.downloader import Downloader
 
 from datetime import datetime
@@ -23,7 +24,7 @@ if __name__ == "__main__":
 
         new_times = fbFetcher.fetch_last_active_times(retries = 5)
 
-        changes = facebook_fetcher.append_times(
+        changes = model.append_times(
             new_times, last_active_times)
 
         if changes:
