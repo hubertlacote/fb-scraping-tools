@@ -1,5 +1,6 @@
 from collections import OrderedDict
 from datetime import datetime
+import copy
 import dataset
 import logging
 import re
@@ -42,7 +43,8 @@ def append_times(new_times, times):
     return changes
 
 
-def process_data(times, user_infos, set_optional_fields=False):
+def process_data(times, user_infos,
+                 set_optional_fields=False, denormalize=False):
     """ Parse names using user_infos and times.
 
     >>> process_data(OrderedDict([('mark.123', [1500])]), \
@@ -70,6 +72,11 @@ def process_data(times, user_infos, set_optional_fields=False):
     >>> process_data(OrderedDict([('1', [1500])]), {'1': {"Name": ""}})
     [OrderedDict([('id', 1), ('name', ''), \
 ('times', ['1970-01-01 01:25:00'])])]
+    >>> process_data(OrderedDict([('mark.123', [1500, 1501])]), \
+{'mark.123': {"id": 36, "Name": "John"}}, denormalize=True)
+    [OrderedDict([('username', 'mark.123'), ('id', 36), ('name', 'John'), \
+('time', '1970-01-01 01:25:00')]), OrderedDict([('username', 'mark.123'), \
+('id', 36), ('name', 'John'), ('time', '1970-01-01 01:25:01')])]
     """
 
     parsed = []
@@ -109,8 +116,13 @@ def process_data(times, user_infos, set_optional_fields=False):
             str(datetime.fromtimestamp(int(time)))
             for time in current_times if int(time) != -1]
 
-        parsed_user["times"] = parsed_times
-        parsed.append(parsed_user)
+        if not denormalize:
+            parsed_user["times"] = parsed_times
+            parsed.append(parsed_user)
+        else:
+            for time in parsed_times:
+                parsed_user["time"] = time
+                parsed.append(copy.deepcopy(parsed_user))
 
     return parsed
 
