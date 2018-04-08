@@ -201,10 +201,8 @@ def save_to_db(data, database_path):
     try:
         db = dataset.connect("sqlite:///{0}".format(database_path))
 
-        users_table_name = "users"
         times_table_name = "times"
-        db.create_table(users_table_name, primary_id="id")
-        db.create_table(times_table_name)
+        db.create_table(times_table_name, primary_id="_id")
         with db as tx:
 
             for user_data in data:
@@ -215,7 +213,7 @@ def save_to_db(data, database_path):
                     return
 
                 required_fields = [
-                    'id', "times"
+                    'id', "time"
                 ]
                 for required_field in required_fields:
                     if required_field not in user_data:
@@ -223,22 +221,7 @@ def save_to_db(data, database_path):
                             required_field))
                         return
 
-                user_id = user_data["id"]
-                user_times = user_data["times"]
-
-                if type(user_times) != list:
-                    logging.error("Invalid input - not a list of times")
-                    return
-
-                time_record = {"user_id": user_id}
-                for user_time in user_times:
-                    time_record["time"] = user_time
-                    tx[times_table_name].insert(time_record)
-
-                user_entry = db[users_table_name].find_one(id=user_id)
-                if not user_entry:
-                    del user_data["times"]
-                    tx[users_table_name].insert(user_data)
+                tx[times_table_name].insert(user_data)
 
     except Exception as e:
 
