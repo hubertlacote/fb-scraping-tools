@@ -81,14 +81,14 @@ class FacebookSoupParser:
     def parse_about_page(self, content):
         """Extract information from the mobile version of the about page.
 
-        Returns an OrderedDict([('Name', ''), ...]).
+        Returns an OrderedDict([('name', ''), ...]).
 
         Keys are added only if the fields were found in the about page.
 
         >>> FacebookSoupParser().parse_about_page('''
         ...    <title id="pageTitle">Mark Zuckerberg</title>
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
-        ... ''')["Name"]
+        ... ''')["name"]
         'Mark Zuckerberg'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -97,7 +97,7 @@ class FacebookSoupParser:
         ...             <div class="dv">14 May 1984</div>
         ...         </div>
         ...    </div>
-        ...    ''')["Birthday"]
+        ...    ''')["birthday"]
         '14 May 1984'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -106,7 +106,7 @@ class FacebookSoupParser:
         ...             <div class="dv">14 May 1984</div>
         ...         </div>
         ...    </div>
-        ...    ''')["Year of birth"]
+        ...    ''')["year_of_birth"]
         1984
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -115,7 +115,7 @@ class FacebookSoupParser:
         ...             <div class="dv">14 May</div>
         ...         </div>
         ...    </div>
-        ...    ''')["Day and month of birth"]
+        ...    ''')["day_and_month_of_birth"]
         '14 May'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -124,7 +124,7 @@ class FacebookSoupParser:
         ...             <div class="_5cdv r">Male</div>
         ...         </div>
         ...    </div>
-        ...    ''')["Gender"]
+        ...    ''')["gender"]
         'Male'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -136,7 +136,7 @@ class FacebookSoupParser:
         ...             <div class="_5cdv r">Male</div>
         ...         </div>
         ...    </div>
-        ...    ''')["Gender"]
+        ...    ''')["gender"]
         'Male'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -146,7 +146,7 @@ class FacebookSoupParser:
                     'Married to <a class="bu" href="/someone">Someone</a>' + \
                     ' since 14 March 2010</div></div>' + '''
         ...    </div>
-        ...    ''')["Relationship"]
+        ...    ''')["relationship"]
         'Married'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -159,7 +159,7 @@ class FacebookSoupParser:
         ...                 <img src="" alt="2nd work">
         ...             </a>
         ...         </div>
-        ...    </div>''')["Work"]
+        ...    </div>''')["work"]
         '1st work'
         >>> FacebookSoupParser().parse_about_page('''
         ...    <a href="/mark?v=timeline&amp;lst=1%3A4%3A2">Timeline</a>'
@@ -172,7 +172,7 @@ class FacebookSoupParser:
         ...                 <img src="" alt="2nd education">
         ...             </a>
         ...         </div>
-        ...    </div>''')["Education"]
+        ...    </div>''')["education"]
         '1st education'
         >>> FacebookSoupParser().parse_about_page('''
         ...     <a href="/mark?v=timeline&amp;lst=1%3A12345%3A2">
@@ -188,7 +188,7 @@ class FacebookSoupParser:
 
         name_tag = soup.find("title")
         if name_tag:
-            user_info["Name"] = name_tag.text
+            user_info["name"] = name_tag.text
 
         timeline_tag = soup.find(href=re.compile(
             "^/.*\?v=timeline.lst=\d+%3A\d+%3A"))
@@ -212,21 +212,21 @@ class FacebookSoupParser:
         for tag in tags:
             found_tag = soup.find("div", attrs={"title": tag})
             if found_tag:
-                user_info[tag] = found_tag.text. \
+                user_info[tag.replace(" ", "_").lower()] = found_tag.text. \
                     replace(tag, "").replace("\n", "").replace(" · Edit", "")
 
-        if "Birthday" in user_info:
-            parsed_birthday = user_info["Birthday"]
+        if "birthday" in user_info:
+            parsed_birthday = user_info["birthday"]
             if parsed_birthday.count(" ") != 2:
-                user_info["Day and month of birth"] = parsed_birthday
-                del user_info["Birthday"]
+                user_info["day_and_month_of_birth"] = parsed_birthday
+                del user_info["birthday"]
             else:
-                user_info["Day and month of birth"] = " ".join(
+                user_info["day_and_month_of_birth"] = " ".join(
                     parsed_birthday.split(" ")[0:2])
-                user_info["Year of birth"] = parsed_birthday.split(" ")[-1]
+                user_info["year_of_birth"] = parsed_birthday.split(" ")[-1]
 
-        if "Year of birth" in user_info:
-            user_info["Year of birth"] = int(user_info["Year of birth"])
+        if "year_of_birth" in user_info:
+            user_info["year_of_birth"] = int(user_info["year_of_birth"])
 
         institution_tags = ["work", "education"]
         for institution_tag in institution_tags:
@@ -234,7 +234,7 @@ class FacebookSoupParser:
             if found_tag:
                 found_img_tag = found_tag.find("img")
                 if found_img_tag and "alt" in found_img_tag.attrs:
-                    user_info[institution_tag.capitalize()] = \
+                    user_info[institution_tag] = \
                         found_img_tag.attrs["alt"]
 
         relationship_tag = soup.find("div", attrs={"id": "relationship"})
@@ -248,7 +248,7 @@ class FacebookSoupParser:
             ]
             for relationship_choice in relationship_choices:
                 if relationship_choice in relationship_tag.text:
-                    user_info["Relationship"] = relationship_choice
+                    user_info["relationship"] = relationship_choice
                     break
 
         return user_info
