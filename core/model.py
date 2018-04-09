@@ -25,10 +25,9 @@ def append_times(new_times, times):
     for user in new_times.keys():
 
         new_lats = new_times[user]
-        if "times" not in new_lats or not new_lats["times"]:
-            logging.warn("No times found for user '{O}'".format(user))
+        if "times" not in new_lats:
+            logging.warn("No times found for user '{0}'".format(user))
             continue
-
         new_lats = new_times[user]["times"]
 
         if user not in times:

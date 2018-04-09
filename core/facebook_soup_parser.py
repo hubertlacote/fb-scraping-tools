@@ -29,11 +29,12 @@ class FacebookSoupParser:
         ... 'for (;;); {"ms": [{"type": "chatproxy-presence", '
         ... '"userIsIdle": false, "chatNotif": 0, "gamers": [], "buddyList": {'
         ... '"111": {"lat": 1500000001}, '
-        ... '"222": {"lat": 1500000002}}}, {"type": "buddylist_overlay",'
+        ... '"222": {"lat": 1500000002}, '
+        ... '"333": {"lat": -1}}}, {"type": "buddylist_overlay",'
         ...  '"overlay": {"333": {"la": 1500000003, "a": 0, "vc": 0, "s":'
         ... '"push"}}}], "t": "msg", "u": 123, "seq": 3}')
         OrderedDict([('111', {'times': [1500000001]}), \
-('222', {'times': [1500000002]})])
+('222', {'times': [1500000002]}), ('333', {'times': []})])
         >>> FacebookSoupParser().parse_buddy_list("")
         OrderedDict()
         >>> FacebookSoupParser().parse_buddy_list(
@@ -75,8 +76,12 @@ class FacebookSoupParser:
         flattened_buddy_list = {}
         for user in buddy_list:
             if "lat" in buddy_list[user]:
+                times = []
+                lat_found = buddy_list[user]["lat"]
+                if lat_found > -1:
+                    times.append(lat_found)
                 flattened_buddy_list[user] = \
-                    {"times": [buddy_list[user]["lat"]]}
+                    {"times": times}
 
         return OrderedDict(sorted(flattened_buddy_list.items()))
 
