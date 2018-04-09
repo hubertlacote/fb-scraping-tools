@@ -522,7 +522,22 @@ def test_fetch_articles_from_timelines_visits_all_links():
                     ])
 
 
-def test_fetch_articles_liked_per_user():
+def test_fetch_reactions_per_user_for_articles():
+
+    input_articles = OrderedDict([
+        (100, OrderedDict([
+            ('id', 100),
+            ('date', '2008-05-13 10:02:00'),
+            ('date_org', '13 May 2008 at 10:02')])),
+        (200, OrderedDict([
+            ('id', 200),
+            ('date', '2008-05-13 10:25:00'),
+            ('date_org', '13 May 2008 at 10:25')])),
+        (300, OrderedDict([
+            ('id', 300),
+            ('date', '2008-05-15 11:02:00'),
+            ('date_org', '15 May 2008 at 11:02')]))
+    ])
 
     expected_urls = [
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
@@ -536,9 +551,34 @@ def test_fetch_articles_liked_per_user():
     ]
 
     expected_results = OrderedDict([
-        ('username1', {100}),
-        ('username2', {100, 200}),
-        ('username3', {200})
+        ('username1', {
+            "likes": [
+                OrderedDict([
+                    ('id', 100),
+                    ('date', '2008-05-13 10:02:00'),
+                    ('date_org', '13 May 2008 at 10:02')])
+            ]
+        }),
+        ('username2', {
+            "likes": [
+                OrderedDict([
+                    ('id', 100),
+                    ('date', '2008-05-13 10:02:00'),
+                    ('date_org', '13 May 2008 at 10:02')]),
+                OrderedDict([
+                    ('id', 200),
+                    ('date', '2008-05-13 10:25:00'),
+                    ('date_org', '13 May 2008 at 10:25')])
+            ]
+        }),
+        ('username3', {
+            "likes": [
+                OrderedDict([
+                    ('id', 200),
+                    ('date', '2008-05-13 10:25:00'),
+                    ('date_org', '13 May 2008 at 10:25')])
+            ]
+        })
     ])
 
     with create_mock_downloader() as mock_downloader:
@@ -559,7 +599,8 @@ def test_fetch_articles_liked_per_user():
                     []
                 ]
 
-            res = fb_fetcher.fetch_articles_liked_per_user([100, 200, 300])
+            res = fb_fetcher.fetch_reactions_per_user_for_articles(
+                input_articles)
 
             assert res == expected_results
 

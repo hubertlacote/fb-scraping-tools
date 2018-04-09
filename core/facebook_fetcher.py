@@ -228,25 +228,24 @@ class FacebookFetcher:
 
         return articles_found
 
-    def fetch_articles_liked_per_user(self, articles_id):
-        """ Return an OrderedDict mapping user ids to a set of articles id.
-
-        e.g. OrderedDict([('username1', {articleid1, articleid2, ...}), ])
+    def fetch_reactions_per_user_for_articles(self, articles):
+        """ Return a dictionary mapping users who liked articles
+        to the list of articles they liked.
         """
 
-        articles_liked_per_user = OrderedDict()
+        reactions_per_user = OrderedDict()
 
         logging.info(
                 "Fetching reactions for {0} articles".format(
-                    len(articles_id)))
+                    len(articles)))
 
-        for articles_processed, article_id in enumerate(articles_id):
+        for articles_processed, article_id in enumerate(articles):
 
             article_url = build_reaction_page_url(article_id, 10000)
 
             logging.info(
                 "Fetching reactions for article {0}/{1} - id: '{2}'".format(
-                    articles_processed + 1, len(articles_id), article_id))
+                    articles_processed + 1, len(articles), article_id))
 
             try:
 
@@ -260,13 +259,16 @@ class FacebookFetcher:
                     len(usernames), usernames))
 
                 for username in usernames:
-                    if username not in articles_liked_per_user:
-                        articles_liked_per_user[username] = set()
-                    articles_liked_per_user[username].add(article_id)
+                    if username not in reactions_per_user:
+                        reactions_per_user[username] = {}
+                        reactions_per_user[username]["likes"] = []
+                    reactions_per_user[username]["likes"].append(
+                        articles[article_id]
+                    )
 
             except Exception as e:
                 logging.error(
                     "Error while downloading page '{0}', "
                     "got exception: '{1}'".format(article_url, e))
 
-        return articles_liked_per_user
+        return reactions_per_user
