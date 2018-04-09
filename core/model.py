@@ -38,7 +38,7 @@ def append_times(new_times, times):
                 logging.info("User {0}: {1}".format(user, new_lat))
                 times[user]["times"].append(new_lat)
                 changes = True
-            elif new_lat > times[user]["times"][-1]:
+            elif new_lat != times[user]["times"][-1]:
                 logging.info("User {0}: {1} > {2}".format(
                     user, new_lat, times[user]["times"][-1]))
                 times[user]["times"].append(new_lat)

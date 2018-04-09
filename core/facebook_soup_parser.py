@@ -3,6 +3,7 @@ from core import common
 from bs4 import BeautifulSoup
 from collections import namedtuple
 from collections import OrderedDict
+from datetime import datetime
 import json
 import logging
 import re
@@ -33,8 +34,8 @@ class FacebookSoupParser:
         ... '"333": {"lat": -1}}}, {"type": "buddylist_overlay",'
         ...  '"overlay": {"333": {"la": 1500000003, "a": 0, "vc": 0, "s":'
         ... '"push"}}}], "t": "msg", "u": 123, "seq": 3}')
-        OrderedDict([('111', {'times': [1500000001]}), \
-('222', {'times': [1500000002]}), ('333', {'times': []})])
+        OrderedDict([('111', {'times': ['2017-07-14 04:40:01']}), \
+('222', {'times': ['2017-07-14 04:40:02']}), ('333', {'times': []})])
         >>> FacebookSoupParser().parse_buddy_list("")
         OrderedDict()
         >>> FacebookSoupParser().parse_buddy_list(
@@ -79,7 +80,7 @@ class FacebookSoupParser:
                 times = []
                 lat_found = buddy_list[user]["lat"]
                 if lat_found > -1:
-                    times.append(lat_found)
+                    times.append(str(datetime.fromtimestamp(int(lat_found))))
                 flattened_buddy_list[user] = \
                     {"times": times}
 
