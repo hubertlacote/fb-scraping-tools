@@ -259,7 +259,7 @@ class FacebookSoupParser:
         JavaScript has to be disabled when fetching the page, otherwise, the
         content returned by requests does not contain the UIDs.
 
-        Returns an OrderedDict([(111, {'id': 111, Name': ''}), ...]) mapping
+        Returns an OrderedDict([(111, {'id': 111, name': ''}), ...]) mapping
         user ids to names.
 
         >>> FacebookSoupParser().parse_friends_page('''
@@ -274,8 +274,8 @@ class FacebookSoupParser:
         ...         <a href="/friends/center/friends/?ppk=1&amp;
         ...             tid=u_0_0&amp;bph=1#friends_center_main">
         ...     </div>''')
-        OrderedDict([(111, OrderedDict([('id', 111), ('Name', 'Mark')])), \
-(222, OrderedDict([('id', 222), ('Name', 'Dave')]))])
+        OrderedDict([(111, OrderedDict([('id', 111), ('name', 'Mark')])), \
+(222, OrderedDict([('id', 222), ('name', 'Dave')]))])
         >>> FacebookSoupParser().parse_friends_page('''
         ...     <div id="friends_center_main">
         ...         <a href="/privacyx/selector/">
@@ -311,7 +311,7 @@ class FacebookSoupParser:
                 if uid_found:
                     user_id = int(uid_found[0].replace("uid=", ""))
                     friends_found[user_id] =\
-                        OrderedDict([("id", user_id), ("Name", link.text)])
+                        OrderedDict([("id", user_id), ("name", link.text)])
 
         return friends_found
 
