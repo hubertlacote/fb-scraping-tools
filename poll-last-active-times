@@ -5,20 +5,45 @@ from core import model
 from core.facebook_fetcher import create_production_fetcher
 
 from datetime import datetime
+import argparse
 import json
 import logging
 import time
+import sys
 
 if __name__ == "__main__":
 
-    common.configure_logging(logging.WARN)
+    common.configure_logging(logging.INFO)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-t', dest='poll_secs', type=int, action='store',
+        help="Time to poll in seconds", default=0)
+    parser.add_argument(
+        '-d', dest='delay_secs', type=int, action='store',
+        help="Delay between polls", default=60*5)
+    parser.add_argument(
+        '-o', dest='output_file', action='store',
+        help="Output JSON file", required=True)
+    args = parser.parse_args()
+
+    if args.poll_secs == 0:
+        logging.info("Polling forever")
+    else:
+        logging.info(
+            "Polling for {0} second(s)".format(args.poll_secs))
+    logging.info(
+        "Delay between each poll: {0} second(s)".format(args.delay_secs))
 
     fb_fetcher = create_production_fetcher()
 
-    times_filepath = common.get_filepath("times.json")
+    times_filepath = common.get_filepath(args.output_file)
     last_active_times = {}
 
-    while True:
+    start_time = datetime.now()
+    current_time = datetime.now()
+    while args.poll_secs == 0 or \
+            (current_time - start_time).total_seconds() < args.poll_secs:
 
         new_times = fb_fetcher.fetch_last_active_times()
 
@@ -30,4 +55,5 @@ if __name__ == "__main__":
             with open(times_filepath, "w") as f:
                 json.dump(last_active_times, f, indent=4)
 
-        time.sleep(60 * 5)
+        time.sleep(args.delay_secs)
+        current_time = datetime.now()
