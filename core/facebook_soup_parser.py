@@ -32,7 +32,8 @@ class FacebookSoupParser:
         ... '"222": {"lat": 1500000002}}}, {"type": "buddylist_overlay",'
         ...  '"overlay": {"333": {"la": 1500000003, "a": 0, "vc": 0, "s":'
         ... '"push"}}}], "t": "msg", "u": 123, "seq": 3}')
-        OrderedDict([('111', [1500000001]), ('222', [1500000002])])
+        OrderedDict([('111', {'times': [1500000001]}), \
+('222', {'times': [1500000002]})])
         >>> FacebookSoupParser().parse_buddy_list("")
         OrderedDict()
         >>> FacebookSoupParser().parse_buddy_list(
@@ -74,7 +75,8 @@ class FacebookSoupParser:
         flattened_buddy_list = {}
         for user in buddy_list:
             if "lat" in buddy_list[user]:
-                flattened_buddy_list[user] = [buddy_list[user]["lat"]]
+                flattened_buddy_list[user] = \
+                    {"times": [buddy_list[user]["lat"]]}
 
         return OrderedDict(sorted(flattened_buddy_list.items()))
 

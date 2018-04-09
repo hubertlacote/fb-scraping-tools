@@ -9,35 +9,40 @@ import re
 def append_times(new_times, times):
     """ Add times from new_times that are not in times.
 
-    >>> append_times(OrderedDict([('1', [150000])]), {})
+    >>> append_times(OrderedDict([('1', {'times': [1500000000]})]), {})
     True
-    >>> append_times(OrderedDict([('1', [150000])]), {'1': [150000]})
+    >>> append_times(OrderedDict([('1', {'times': [1500000000]})]), \
+{'1': {'times': [1500000000]}})
     False
-    >>> append_times(OrderedDict([('2', [150000])]), {'1': [150000]})
+    >>> append_times(OrderedDict([('2', {'times': [1500000000]})]), \
+{'1': {'times': [1500000000]}})
     True
-    >>> append_times(OrderedDict([('1', [150099])]), {'1': [150000]})
+    >>> append_times(OrderedDict([('1', {'times': [1500000099]})]), \
+{'1': {'times': [1500000000]}})
     True
     """
     changes = False
     for user in new_times.keys():
 
         new_lats = new_times[user]
-        if not new_lats:
+        if "times" not in new_lats or not new_lats["times"]:
             logging.warn("No times found for user '{O}'".format(user))
             continue
 
+        new_lats = new_times[user]["times"]
+
         if user not in times:
-            times[user] = []
+            times[user] = {"times": []}
 
         for new_lat in new_lats:
-            if not times[user]:
+            if not times[user]["times"]:
                 logging.info("User {0}: {1}".format(user, new_lat))
-                times[user].append(new_lat)
+                times[user]["times"].append(new_lat)
                 changes = True
-            elif new_lat > times[user][-1]:
+            elif new_lat > times[user]["times"][-1]:
                 logging.info("User {0}: {1} > {2}".format(
-                    user, new_lat, times[user][-1]))
-                times[user].append(new_lat)
+                    user, new_lat, times[user]["times"][-1]))
+                times[user]["times"].append(new_lat)
                 changes = True
 
     return changes
