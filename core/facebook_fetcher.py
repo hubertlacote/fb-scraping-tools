@@ -1,6 +1,7 @@
 from core.downloader import Downloader
 from core.facebook_soup_parser import FacebookSoupParser
 from core import common
+from core import model
 
 from collections import OrderedDict
 import logging
@@ -204,10 +205,11 @@ class FacebookFetcher:
 
                 for article_id in result.articles:
                     article_date = result.articles[article_id]
-                    logging.info("Found article {0} - date: {1}".format(
-                        article_id, article_date))
+                    date_parsed = str(model.parse_date(article_date))
+                    logging.info("Found article {0} - date: {1} - {2}".format(
+                        article_id, article_date, date_parsed))
                     articles_found[article_id] = OrderedDict([
-                        ("id", article_id), ("date", article_date)
+                        ("id", article_id), ("date", date_parsed)
                     ])
 
                 show_more_link = result.show_more_link
