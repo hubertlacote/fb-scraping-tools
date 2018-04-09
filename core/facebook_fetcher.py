@@ -156,7 +156,9 @@ class FacebookFetcher:
                     user_id, common.prettify(user_infos)))
 
             except Exception as e:
-                logging.error(
+                if is_id:
+                    infos[user_id] = OrderedDict([("id", int(user_id))])
+                logging.warn(
                     "Error while downloading page '{0}', "
                     "got exception: '{1}'".format(url, e))
 

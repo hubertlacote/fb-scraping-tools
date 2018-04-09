@@ -277,10 +277,13 @@ def test_fetch_user_infos_is_resilient_to_downloader_exception():
     expected_url_user_111 = \
         "https://mbasic.facebook.com/profile.php?v=info&id=111"
 
+    fake_infos_user_110 = OrderedDict(
+        [('id', 110)])
     fake_infos_user_111 = OrderedDict(
         [('id', 111), ('Name', 'Dave')])
 
     expected_results = {
+        110: fake_infos_user_110,
         111: fake_infos_user_111
     }
 
@@ -319,10 +322,13 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_exception():
     expected_url_user_111 = \
         "https://mbasic.facebook.com/profile.php?v=info&id=111"
 
+    fake_infos_user_110 = OrderedDict(
+        [('id', 110)])
     fake_infos_user_111 = OrderedDict(
         [('id', 111), ('Name', 'Dave')])
 
     expected_results = {
+        110: fake_infos_user_110,
         111: fake_infos_user_111
     }
 
@@ -339,6 +345,57 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_exception():
             ]
             mock_fb_parser.parse_about_page.side_effect = [
                 RuntimeError(),
+                fake_infos_user_111
+            ]
+
+            res = fb_fetcher.fetch_user_infos([110, 111])
+
+            assert res == expected_results
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_url_user_110,
+                    cookie=ANY, timeout_secs=ANY, retries=ANY),
+                call(
+                    url=expected_url_user_111,
+                    cookie=ANY, timeout_secs=ANY, retries=ANY)
+            ])
+            mock_fb_parser.parse_about_page.assert_has_calls([
+                call("content1"),
+                call("content2"),
+            ])
+
+
+def test_fetch_user_infos_is_resilient_to_fb_parser_failure():
+
+    expected_url_user_110 = \
+        "https://mbasic.facebook.com/profile.php?v=info&id=110"
+    expected_url_user_111 = \
+        "https://mbasic.facebook.com/profile.php?v=info&id=111"
+
+    fake_infos_user_110 = OrderedDict(
+        [('id', 110)])
+    fake_infos_user_111 = OrderedDict(
+        [('id', 111), ('Name', 'Dave')])
+
+    expected_results = {
+        110: fake_infos_user_110,
+        111: fake_infos_user_111
+    }
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            mock_downloader.fetch_url.side_effect = [
+                create_ok_return_value("content1"),
+                create_ok_return_value("content2")
+            ]
+            mock_fb_parser.parse_about_page.side_effect = [
+                None,
                 fake_infos_user_111
             ]
 
