@@ -209,7 +209,9 @@ class FacebookFetcher:
                     logging.info("Found article {0} - date: {1} - {2}".format(
                         article_id, article_date, date_parsed))
                     articles_found[article_id] = OrderedDict([
-                        ("id", article_id), ("date", date_parsed)
+                        ("id", article_id),
+                        ("date", date_parsed),
+                        ("date_org", article_date)
                     ])
 
                 show_more_link = result.show_more_link
