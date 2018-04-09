@@ -429,13 +429,20 @@ def test_fetch_articles_from_timelines_visits_all_links():
             "https://mbasic.facebook.com/ShowMoreFromLink1-2"
         ]
     expected_results = OrderedDict([
-        (100, '13 May 2008 at 10:02'),
-        (200, '13 May 2008 at 10:25'),
-        (300, '15 May 2008 at 11:02'),
-        (400, '1 February 2007 at 09:00'),
-        (500, '2 February 2007 at 10:00'),
-        (600, '3 February 2007 at 11:00'),
-        (700, '4 February 2007 at 12:00')
+        (100, OrderedDict([
+            ('id', 100), ('date', '13 May 2008 at 10:02')])),
+        (200, OrderedDict([
+            ('id', 200), ('date', '13 May 2008 at 10:25')])),
+        (300, OrderedDict([
+            ('id', 300), ('date', '15 May 2008 at 11:02')])),
+        (400, OrderedDict([
+            ('id', 400), ('date', '1 February 2007 at 09:00')])),
+        (500, OrderedDict([
+            ('id', 500), ('date', '2 February 2007 at 10:00')])),
+        (600, OrderedDict([
+            ('id', 600), ('date', '3 February 2007 at 11:00')])),
+        (700, OrderedDict([
+            ('id', 700), ('date', '4 February 2007 at 12:00')]))
     ])
 
     with create_mock_downloader() as mock_downloader:
