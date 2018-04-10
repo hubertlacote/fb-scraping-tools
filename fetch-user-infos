@@ -15,12 +15,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '-i', dest='read_from_standard_input', action='store_true',
+        help="Read usernames / user ids from standard input as JSON")
+    parser.add_argument(
         '-u', dest='username', action='store',
         help="Facebook username or user id, e.g. 'zuck' or '4' "
              "for Mark Zuckerberg")
     args = parser.parse_args()
 
-    if not args.username:
+    if not args.username and not args.read_from_standard_input:
         parser.print_help()
         sys.exit(1)
 
@@ -29,6 +32,23 @@ if __name__ == "__main__":
 
     fb_fetcher = create_production_fetcher()
 
-    infos = fb_fetcher.fetch_user_infos([args.username])
+    ids = []
+    if args.read_from_standard_input:
+
+        friend_list = common.load_json_from_fd(sys.stdin)
+        if not friend_list:
+            logging.error("No user ids passed on stdin")
+            sys.exit(1)
+
+        if type(friend_list) == dict:
+            ids = friend_list.keys
+        else:
+            ids = friend_list
+
+    else:
+
+        ids.append(args.username)
+
+    infos = fb_fetcher.fetch_user_infos(ids)
 
     print(common.prettify(infos))
