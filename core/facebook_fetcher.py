@@ -165,66 +165,79 @@ class FacebookFetcher:
 
         return infos
 
-    def fetch_articles_from_timeline(self, username):
-        """ Return a dictionary mapping article id to time of the post."""
-
-        logging.info(
-            "Fetching timeline for user '{0}' from Facebook".
-            format(username))
+    def fetch_articles_from_timeline(self, user_ids):
+        """ For every user_id provided, return a dictionary mapping article id
+        to time of the post."""
 
         articles_found = OrderedDict()
 
-        links_to_explore = [build_timeline_page_url(username)]
-        links_explored = 0
+        for users_processed, username in enumerate(user_ids, 1):
 
-        while links_to_explore:
+            logging.info("Processing user '{0}' - {1}/{2}".format(
+                username, users_processed, len(user_ids)))
 
-            url = links_to_explore.pop()
+            articles_found[username] = OrderedDict()
 
             logging.info(
-                "Exploring link {0} - {1} left after, url: {2}".format(
-                    links_explored + 1, len(links_to_explore), url))
+                "Fetching timeline for user '{0}' from Facebook".
+                format(username))
 
-            try:
+            links_to_explore = [build_timeline_page_url(username)]
+            links_explored = 0
 
-                response = self.downloader.fetch_url(
-                    cookie=self.cookie, url=url, timeout_secs=15, retries=5)
+            while links_to_explore:
 
-                if links_explored == 0:
-                    links = \
-                        self.fb_parser.parse_timeline_years_links(
-                            response.text)
-                    logging.info("Found {0} year links to explore".format(
-                        len(links)))
-                    full_links = [build_relative_url(link) for link in links]
-                    links_to_explore.extend(full_links)
+                url = links_to_explore.pop()
 
-                result = self.fb_parser.parse_timeline_page(response.text)
-                if not result:
-                    raise RuntimeError("Failed to parse timeline - no result")
+                logging.info(
+                    "Exploring link {0} - {1} left after, url: {2}".format(
+                        links_explored + 1, len(links_to_explore), url))
 
-                for article_id in result.articles:
-                    article_date = result.articles[article_id]
-                    date_parsed = str(model.parse_date(article_date))
-                    logging.info("Found article {0} - date: {1} - {2}".format(
-                        article_id, article_date, date_parsed))
-                    articles_found[article_id] = OrderedDict([
-                        ("id", article_id),
-                        ("date", date_parsed),
-                        ("date_org", article_date)
-                    ])
+                try:
 
-                show_more_link = result.show_more_link
-                if show_more_link:
-                    logging.info("Found show more link")
-                    links_to_explore.append(build_relative_url(show_more_link))
+                    response = self.downloader.fetch_url(
+                        cookie=self.cookie, url=url,
+                        timeout_secs=15, retries=5)
 
-            except Exception as e:
-                logging.error(
-                    "Error while downloading page '{0}', "
-                    "got exception: '{1}'".format(url, e))
+                    if links_explored == 0:
+                        links = \
+                            self.fb_parser.parse_timeline_years_links(
+                                response.text)
+                        logging.info("Found {0} year links to explore".format(
+                            len(links)))
+                        full_links = \
+                            [build_relative_url(link) for link in links]
+                        links_to_explore.extend(full_links)
 
-            links_explored += 1
+                    result = self.fb_parser.parse_timeline_page(response.text)
+                    if not result:
+                        raise RuntimeError(
+                            "Failed to parse timeline - no result")
+
+                    for article_id in result.articles:
+                        article_date = result.articles[article_id]
+                        date_parsed = str(model.parse_date(article_date))
+                        logging.info(
+                            "Found article {0} - date: {1} - {2}".format(
+                                article_id, article_date, date_parsed))
+                        articles_found[username][article_id] = OrderedDict([
+                            ("id", article_id),
+                            ("date", date_parsed),
+                            ("date_org", article_date)
+                        ])
+
+                    show_more_link = result.show_more_link
+                    if show_more_link:
+                        logging.info("Found show more link")
+                        links_to_explore.append(
+                            build_relative_url(show_more_link))
+
+                except Exception as e:
+                    logging.error(
+                        "Error while downloading page '{0}', "
+                        "got exception: '{1}'".format(url, e))
+
+                links_explored += 1
 
         return articles_found
 

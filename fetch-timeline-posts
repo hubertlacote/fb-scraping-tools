@@ -15,11 +15,14 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        '-i', dest='read_from_standard_input', action='store_true',
+        help="Read usernames / user ids from standard input as JSON")
+    parser.add_argument(
         '-u', dest='username', action='store',
         help="Facebook username, e.g. zuck for Mark Zuckerberg")
     args = parser.parse_args()
 
-    if not args.username:
+    if not args.username and not args.read_from_standard_input:
         parser.print_help()
         sys.exit(1)
 
@@ -28,6 +31,23 @@ if __name__ == "__main__":
 
     fb_fetcher = create_production_fetcher()
 
-    timeline_likes = fb_fetcher.fetch_articles_from_timeline(args.username)
+    ids = []
+    if args.read_from_standard_input:
+
+        id_list = common.load_json_from_fd(sys.stdin)
+        if not id_list:
+            logging.error("No user ids passed on stdin")
+            sys.exit(1)
+
+        if type(id_list) == dict:
+            ids = id_list.keys
+        else:
+            ids = id_list
+
+    else:
+
+        ids.append(args.username)
+
+    timeline_likes = fb_fetcher.fetch_articles_from_timeline(ids)
 
     print(common.prettify(timeline_likes))
