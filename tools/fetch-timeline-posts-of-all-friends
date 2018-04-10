@@ -1,0 +1,8 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+${where_am_i}/../fetch-friend-list | ${where_am_i}/../fetch-timeline-posts -i

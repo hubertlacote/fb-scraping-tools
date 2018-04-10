@@ -5,6 +5,6 @@ where_am_i="${0%/*}"
 # Enforce PEP8 coding conventions
 pycodestyle --show-source \
   --filename=*.py,fetch*,poll*,process*,update* \
-  "${where_am_i}"
+  --exclude ".git,__pycache__,tools" "${where_am_i}"
 
 nosetests --with-doctest

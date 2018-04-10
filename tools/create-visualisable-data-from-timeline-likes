@@ -1,0 +1,8 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+${where_am_i}/fetch-timeline-likes $@ | ${where_am_i}/add-user-infos -f - | ${where_am_i}/denormalize -c -l -f -

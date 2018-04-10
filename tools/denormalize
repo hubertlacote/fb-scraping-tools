@@ -1,0 +1,47 @@
+#! /bin/bash
+
+set -u
+set -e
+
+usage() {
+    [[ -z ${1:-} ]] || echo -e "Error: ${1}\n"
+    echo -e "Usage:" >&2
+    echo -e "${0} -f INPUT_FILE -l [-c]" >&2
+    echo -e "${0} -f INPUT_FILE -t [-c]" >&2
+    echo -e "${0} -f INPUT_FILE -p [-c]\n" >&2
+    echo -e "\t-f\tInput file to denormalize or - for standard input"
+    echo -e "\t-l\tInput file contains likes"
+    echo -e "\t-p\tInput file contains posts"
+    echo -e "\t-t\tInput file contains times"
+    echo -e "\t-c\tCompact output"
+    exit 1
+}
+
+input_file=""
+compact=""
+pattern=""
+while getopts "f:clpt" option_name; do
+    case $option_name in
+        f) input_file="${OPTARG:-}";;
+        c) compact="-c";;
+        l) pattern=".likes[]?.date";;
+        p) pattern=".posts[]?.date";;
+        t) pattern=".times[]?";;
+        *) usage;;
+    esac
+done
+
+[[ -n "${input_file}" ]] || usage "Input file not provided."
+[[ -n "${pattern}" ]] || usage "Please specify -t or -l."
+
+cat "${input_file}" | jq ${compact} '[.[] |
+    {
+      id: (.id // empty),
+      time: '${pattern}',
+      name: (.name // ""),
+      education: (.education // ""),
+      gender: (.gender // ""),
+      relationship: (.relationship // ""),
+      work: (.work // ""),
+      year_of_birth: (.year_of_birth // "")
+    }]'

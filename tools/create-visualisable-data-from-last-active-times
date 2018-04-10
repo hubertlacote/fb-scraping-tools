@@ -1,0 +1,14 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+output_file=$(mktemp)
+
+# Use a temporary file to be able to interrupt with Ctrl-C
+${where_am_i}/../poll-last-active-times $@ > "${output_file}"
+cat "${output_file}" | ${where_am_i}/add-user-infos -f - | ${where_am_i}/denormalize -c -t -f -
+
+rm "${output_file}"

@@ -1,0 +1,10 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+# Use jq to drop the name of every user whose timeline was fetched
+# and just get a big list of all posts from all timelines
+cat - | jq '[.[].posts[] | {post_id: .post_id, date: .date, date_org: .date_org}]'
