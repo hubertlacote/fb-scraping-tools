@@ -43,9 +43,14 @@ def build_about_page_url_from_username(username):
         format(username)
 
 
-def build_timeline_page_url(username):
+def build_timeline_page_url_from_username(username):
     return "https://mbasic.facebook.com/{0}?v=timeline". \
         format(username)
+
+
+def build_timeline_page_url_from_id(id):
+    return "https://mbasic.facebook.com/profile.php?id={0}&v=timeline&". \
+        format(id)
 
 
 def build_reaction_page_url(article_id, max_likes):
@@ -182,7 +187,15 @@ class FacebookFetcher:
                 "Fetching timeline for user '{0}' from Facebook".
                 format(username))
 
-            links_to_explore = [build_timeline_page_url(username)]
+            url = ""
+            is_id = re.match("^\d+$", str(username))
+            if is_id or "profile.php?id=" in username:
+                url = build_timeline_page_url_from_id(
+                    str(username).replace("profile.php?id=", ""))
+            else:
+                url = build_timeline_page_url_from_username(username)
+
+            links_to_explore = [url]
             links_explored = 0
 
             while links_to_explore:
