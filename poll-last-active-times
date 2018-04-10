@@ -42,13 +42,15 @@ if __name__ == "__main__":
         help="Delay between polls", default=60*5)
     args = parser.parse_args()
 
+    delay_secs = args.delay_secs
     if args.poll_secs == 0:
         logging.info("Polling forever")
     else:
+        delay_secs = min(args.poll_secs, args.delay_secs)
         logging.info(
             "Polling for {0} second(s)".format(args.poll_secs))
     logging.info(
-        "Delay between each poll: {0} second(s)".format(args.delay_secs))
+        "Delay between each poll: {0} second(s)".format(delay_secs))
 
     fb_fetcher = create_production_fetcher()
 
@@ -64,5 +66,5 @@ if __name__ == "__main__":
             model.append_times(
                 fb_fetcher.fetch_last_active_times(), last_active_times)
 
-        time.sleep(args.delay_secs)
-        current_time = datetime.now()
+            time.sleep(delay_secs)
+            current_time = datetime.now()
