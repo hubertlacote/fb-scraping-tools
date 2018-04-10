@@ -432,31 +432,31 @@ def test_fetch_articles_from_timelines_visits_all_links():
         ("mark", OrderedDict([
             ("posts", OrderedDict([
                 (100, OrderedDict([
-                    ('id', 100),
+                    ('post_id', 100),
                     ('date', '2008-05-13 10:02:00'),
                     ('date_org', '13 May 2008 at 10:02')])),
                 (200, OrderedDict([
-                    ('id', 200),
+                    ('post_id', 200),
                     ('date', '2008-05-13 10:25:00'),
                     ('date_org', '13 May 2008 at 10:25')])),
                 (300, OrderedDict([
-                    ('id', 300),
+                    ('post_id', 300),
                     ('date', '2008-05-15 11:02:00'),
                     ('date_org', '15 May 2008 at 11:02')])),
                 (400, OrderedDict([
-                    ('id', 400),
+                    ('post_id', 400),
                     ('date', '2007-02-01 09:00:00'),
                     ('date_org', '1 February 2007 at 09:00')])),
                 (500, OrderedDict([
-                    ('id', 500),
+                    ('post_id', 500),
                     ('date', '2007-02-02 10:00:00'),
                     ('date_org', '2 February 2007 at 10:00')])),
                 (600, OrderedDict([
-                    ('id', 600),
+                    ('post_id', 600),
                     ('date', '2007-02-03 11:00:00'),
                     ('date_org', '3 February 2007 at 11:00')])),
                 (700, OrderedDict([
-                    ('id', 700),
+                    ('post_id', 700),
                     ('date', '2007-02-04 12:00:00'),
                     ('date_org', '4 February 2007 at 12:00')]))
                 ]))
@@ -530,15 +530,15 @@ def test_fetch_reactions_per_user_for_articles():
 
     input_articles = OrderedDict([
         (100, OrderedDict([
-            ('id', 100),
+            ('post_id', 100),
             ('date', '2008-05-13 10:02:00'),
             ('date_org', '13 May 2008 at 10:02')])),
         (200, OrderedDict([
-            ('id', 200),
+            ('post_id', 200),
             ('date', '2008-05-13 10:25:00'),
             ('date_org', '13 May 2008 at 10:25')])),
         (300, OrderedDict([
-            ('id', 300),
+            ('post_id', 300),
             ('date', '2008-05-15 11:02:00'),
             ('date_org', '15 May 2008 at 11:02')]))
     ])
@@ -558,7 +558,7 @@ def test_fetch_reactions_per_user_for_articles():
         ('username1', {
             "likes": [
                 OrderedDict([
-                    ('id', 100),
+                    ('post_id', 100),
                     ('date', '2008-05-13 10:02:00'),
                     ('date_org', '13 May 2008 at 10:02')])
             ]
@@ -566,11 +566,11 @@ def test_fetch_reactions_per_user_for_articles():
         ('username2', {
             "likes": [
                 OrderedDict([
-                    ('id', 100),
+                    ('post_id', 100),
                     ('date', '2008-05-13 10:02:00'),
                     ('date_org', '13 May 2008 at 10:02')]),
                 OrderedDict([
-                    ('id', 200),
+                    ('post_id', 200),
                     ('date', '2008-05-13 10:25:00'),
                     ('date_org', '13 May 2008 at 10:25')])
             ]
@@ -578,7 +578,7 @@ def test_fetch_reactions_per_user_for_articles():
         ('username3', {
             "likes": [
                 OrderedDict([
-                    ('id', 200),
+                    ('post_id', 200),
                     ('date', '2008-05-13 10:25:00'),
                     ('date_org', '13 May 2008 at 10:25')])
             ]

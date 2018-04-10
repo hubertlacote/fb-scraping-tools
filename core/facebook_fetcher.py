@@ -236,7 +236,7 @@ class FacebookFetcher:
                                 article_id, article_date, date_parsed))
                         articles_found[username]["posts"][article_id] = \
                             OrderedDict([
-                                ("id", article_id),
+                                ("post_id", article_id),
                                 ("date", date_parsed),
                                 ("date_org", article_date)
                             ])
