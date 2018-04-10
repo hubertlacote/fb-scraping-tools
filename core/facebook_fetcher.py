@@ -259,6 +259,9 @@ class FacebookFetcher:
     def fetch_reactions_per_user_for_articles(self, articles):
         """ Return a dictionary mapping users who liked articles
         to the list of articles they liked.
+
+        articles is a list of dictionaries containing the key post_id
+        for every article.
         """
 
         reactions_per_user = OrderedDict()
@@ -267,8 +270,15 @@ class FacebookFetcher:
                 "Fetching reactions for {0} articles".format(
                     len(articles)))
 
-        for articles_processed, article_id in enumerate(articles):
+        for articles_processed, article in enumerate(articles):
 
+            if "post_id" not in article:
+                logging.error(
+                    "Invalid input, every article in the list "
+                    "must contain the key post_id")
+                return OrderedDict()
+
+            article_id = article["post_id"]
             article_url = build_reaction_page_url(article_id, 10000)
 
             logging.info(
@@ -291,7 +301,7 @@ class FacebookFetcher:
                         reactions_per_user[username] = {}
                         reactions_per_user[username]["likes"] = []
                     reactions_per_user[username]["likes"].append(
-                        articles[article_id]
+                        article
                     )
 
             except Exception as e:

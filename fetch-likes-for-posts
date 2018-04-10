@@ -21,11 +21,13 @@ if __name__ == "__main__":
     articles = common.load_json_from_fd(sys.stdin)
 
     if not articles:
-        logging.error("No article ids passed on stdin")
+        logging.error("No posts ids passed on stdin")
         sys.exit(1)
 
-    if type(articles) != dict and type(articles) != OrderedDict:
-        logging.error("Articles have to be passed as a dictionary")
+    if type(articles) != list:
+        logging.error(
+            "Posts have to be passed as a list of dictionaries containing "
+            "the key post_id for every post.")
         sys.exit(1)
 
     reactions = fb_fetcher.fetch_reactions_per_user_for_articles(articles)

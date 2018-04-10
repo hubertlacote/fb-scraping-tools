@@ -528,20 +528,20 @@ def test_fetch_articles_from_timelines_visits_all_links():
 
 def test_fetch_reactions_per_user_for_articles():
 
-    input_articles = OrderedDict([
-        (100, OrderedDict([
+    input_articles = [
+        OrderedDict([
             ('post_id', 100),
             ('date', '2008-05-13 10:02:00'),
-            ('date_org', '13 May 2008 at 10:02')])),
-        (200, OrderedDict([
+            ('date_org', '13 May 2008 at 10:02')]),
+        OrderedDict([
             ('post_id', 200),
             ('date', '2008-05-13 10:25:00'),
-            ('date_org', '13 May 2008 at 10:25')])),
-        (300, OrderedDict([
+            ('date_org', '13 May 2008 at 10:25')]),
+        OrderedDict([
             ('post_id', 300),
             ('date', '2008-05-15 11:02:00'),
-            ('date_org', '15 May 2008 at 11:02')]))
-    ])
+            ('date_org', '15 May 2008 at 11:02')])
+    ]
 
     expected_urls = [
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
