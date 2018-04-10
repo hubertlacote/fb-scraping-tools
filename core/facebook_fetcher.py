@@ -182,6 +182,7 @@ class FacebookFetcher:
                 username, users_processed, len(user_ids)))
 
             articles_found[username] = OrderedDict()
+            articles_found[username]["posts"] = OrderedDict()
 
             logging.info(
                 "Fetching timeline for user '{0}' from Facebook".
@@ -233,11 +234,12 @@ class FacebookFetcher:
                         logging.info(
                             "Found article {0} - date: {1} - {2}".format(
                                 article_id, article_date, date_parsed))
-                        articles_found[username][article_id] = OrderedDict([
-                            ("id", article_id),
-                            ("date", date_parsed),
-                            ("date_org", article_date)
-                        ])
+                        articles_found[username]["posts"][article_id] = \
+                            OrderedDict([
+                                ("id", article_id),
+                                ("date", date_parsed),
+                                ("date_org", article_date)
+                            ])
 
                     show_more_link = result.show_more_link
                     if show_more_link:
