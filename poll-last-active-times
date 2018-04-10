@@ -4,12 +4,30 @@ from core import common
 from core import model
 from core.facebook_fetcher import create_production_fetcher
 
+from contextlib import contextmanager
 from datetime import datetime
 import argparse
 import json
 import logging
 import time
+import signal
 import sys
+
+
+def print_and_exit(times):
+    print(common.prettify(times))
+    sys.exit(0)
+
+
+@contextmanager
+def interrupt_handler(times):
+    for sig in [signal.SIGINT, signal.SIGTERM]:
+        signal.signal(
+            sig,
+            lambda signal, frame: print_and_exit(times))
+    yield
+    print_and_exit(times)
+
 
 if __name__ == "__main__":
 
@@ -22,9 +40,6 @@ if __name__ == "__main__":
     parser.add_argument(
         '-d', dest='delay_secs', type=int, action='store',
         help="Delay between polls", default=60*5)
-    parser.add_argument(
-        '-o', dest='output_file', action='store',
-        help="Output JSON file", required=True)
     args = parser.parse_args()
 
     if args.poll_secs == 0:
@@ -37,23 +52,17 @@ if __name__ == "__main__":
 
     fb_fetcher = create_production_fetcher()
 
-    times_filepath = common.get_filepath(args.output_file)
     last_active_times = {}
 
-    start_time = datetime.now()
-    current_time = datetime.now()
-    while args.poll_secs == 0 or \
-            (current_time - start_time).total_seconds() < args.poll_secs:
+    with interrupt_handler(last_active_times):
 
-        new_times = fb_fetcher.fetch_last_active_times()
+        start_time = datetime.now()
+        current_time = datetime.now()
+        while args.poll_secs == 0 or \
+                (current_time - start_time).total_seconds() < args.poll_secs:
 
-        changes = model.append_times(
-            new_times, last_active_times)
-
-        if changes:
-            logging.info("Saving changes to file")
-            with open(times_filepath, "w") as f:
-                json.dump(last_active_times, f, indent=4)
+            model.append_times(
+                fb_fetcher.fetch_last_active_times(), last_active_times)
 
         time.sleep(args.delay_secs)
         current_time = datetime.now()
