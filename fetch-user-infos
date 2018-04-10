@@ -24,7 +24,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not args.username and not args.read_from_standard_input:
-        parser.print_help()
+        parser.print_help(file=sys.stderr)
         sys.exit(1)
 
     # Enable caching (2 hrs) to avoid hitting Facebook too much

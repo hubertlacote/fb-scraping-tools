@@ -18,7 +18,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not args.database_path:
-        parser.print_help()
+        parser.print_help(file=sys.stderr)
         sys.exit(1)
 
     data = common.load_json_from_fd(sys.stdin)

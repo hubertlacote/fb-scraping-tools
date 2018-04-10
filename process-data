@@ -20,7 +20,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if not args.user_infos_filepath:
-        parser.print_help()
+        parser.print_help(file=sys.stderr)
         sys.exit(1)
 
     user_infos = common.load_json_from_file(args.user_infos_filepath)
