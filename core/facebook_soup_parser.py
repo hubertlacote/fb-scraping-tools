@@ -350,6 +350,11 @@ class FacebookSoupParser:
         ...     </div>''')
         ['link1', 'link2']
         >>> FacebookSoupParser().parse_timeline_years_links('''
+        ...     <div id="m_group_stories_container">
+        ...         <a href="badLink">Not a 2010 link to catch</a>
+        ...     </div>''')
+        []
+        >>> FacebookSoupParser().parse_timeline_years_links('''
         ...     <input name="login" type="submit" value="Log In">''')
         []
         """
@@ -368,7 +373,7 @@ class FacebookSoupParser:
         links_soup = main_soup.find_all('a')
         for link in links_soup:
             if "href" in link.attrs:
-                year_found = re.findall(r'\d{4}', link.text)
+                year_found = re.match(r'^\d{4}$', link.text)
                 if year_found:
                     links_found.append(link.attrs["href"])
 
