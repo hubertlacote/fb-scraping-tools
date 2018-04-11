@@ -71,6 +71,21 @@ def build_relative_url(relative_url):
         format(relative_url)
 
 
+def get_user_id(user_ref):
+    """
+    >>> get_user_id("mark")
+    >>> get_user_id("150")
+    150
+    >>> get_user_id("profile.php?id=151")
+    151
+    """
+    is_id = re.match("^\d+$", str(user_ref))
+    if is_id or "profile.php?id=" in user_ref:
+        return int(str(user_ref).replace("profile.php?id=", ""))
+    else:
+        return None
+
+
 class FacebookFetcher:
 
     def __init__(self, downloader, fb_parser, config):
@@ -128,24 +143,23 @@ class FacebookFetcher:
                     "got exception: '{1}'".format(url, e))
                 return friend_list
 
-    def fetch_user_infos(self, user_ids):
+    def fetch_user_infos(self, user_refs):
 
         logging.info(
             "Querying '{0}' users from Facebook".
-            format(len(user_ids)))
+            format(len(user_refs)))
 
         infos = {}
-        for user_no, user_id in enumerate(user_ids, 1):
+        for user_no, user_ref in enumerate(user_refs, 1):
 
             logging.info("Processing {0} - {1}/{2}".format(
-                user_id, user_no, len(user_ids)))
+                user_ref, user_no, len(user_refs)))
 
-            is_id = re.match("^\d+$", str(user_id))
-            if is_id or "profile.php?id=" in user_id:
-                url = build_about_page_url_from_id(
-                    str(user_id).replace("profile.php?id=", ""))
+            user_id = get_user_id(user_ref)
+            if user_id:
+                url = build_about_page_url_from_id(user_id)
             else:
-                url = build_about_page_url_from_username(user_id)
+                url = build_about_page_url_from_username(user_ref)
 
             try:
                 response = self.downloader.fetch_url(
@@ -155,46 +169,45 @@ class FacebookFetcher:
                     response.text)
                 if not user_infos:
                     raise RuntimeError(
-                        "Failed to extract infos for user {0}".format(user_id))
-                infos[user_id] = user_infos
+                        "Failed to extract infos for user {0}".format(
+                            user_ref))
+                infos[user_ref] = user_infos
 
                 logging.info("Got infos for user '{0}' - {1}".format(
-                    user_id, common.prettify(user_infos)))
+                    user_ref, common.prettify(user_infos)))
 
             except Exception as e:
-                if is_id:
-                    infos[user_id] = OrderedDict([("id", int(user_id))])
+                if user_id:
+                    infos[user_ref] = OrderedDict([("id", user_id)])
                 logging.warn(
                     "Error while downloading page '{0}', "
                     "got exception: '{1}'".format(url, e))
 
         return infos
 
-    def fetch_articles_from_timeline(self, user_ids):
-        """ For every user_id provided, return a dictionary mapping article id
+    def fetch_articles_from_timeline(self, user_refs):
+        """ For every user_ref provided, return a dictionary mapping article id
         to time of the post."""
 
         articles_found = OrderedDict()
 
-        for users_processed, username in enumerate(user_ids, 1):
+        for users_processed, user_ref in enumerate(user_refs, 1):
 
             logging.info("Processing user '{0}' - {1}/{2}".format(
-                username, users_processed, len(user_ids)))
+                user_ref, users_processed, len(user_refs)))
 
-            articles_found[username] = OrderedDict()
-            articles_found[username]["posts"] = OrderedDict()
+            articles_found[user_ref] = OrderedDict()
+            articles_found[user_ref]["posts"] = OrderedDict()
 
             logging.info(
                 "Fetching timeline for user '{0}' from Facebook".
-                format(username))
+                format(user_ref))
 
-            url = ""
-            is_id = re.match("^\d+$", str(username))
-            if is_id or "profile.php?id=" in username:
-                url = build_timeline_page_url_from_id(
-                    str(username).replace("profile.php?id=", ""))
+            user_id = get_user_id(user_ref)
+            if user_id:
+                url = build_timeline_page_url_from_id(user_id)
             else:
-                url = build_timeline_page_url_from_username(username)
+                url = build_timeline_page_url_from_username(user_ref)
 
             links_to_explore = [url]
             links_explored = 0
@@ -234,7 +247,7 @@ class FacebookFetcher:
                         logging.info(
                             "Found article {0} - date: {1} - {2}".format(
                                 article_id, article_date, date_parsed))
-                        articles_found[username]["posts"][article_id] = \
+                        articles_found[user_ref]["posts"][article_id] = \
                             OrderedDict([
                                 ("post_id", article_id),
                                 ("date", date_parsed),
