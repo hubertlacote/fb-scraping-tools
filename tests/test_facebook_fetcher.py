@@ -11,12 +11,12 @@ from unittest.mock import call, ANY
 def test_fetch_lat_calls_downloader_correctly():
 
     config = common.Config(
-        cookie_xs="abc", user_id="123", client_id="456a")
+        cookie_xs="abc", user_id="123")
 
     expected_cookie = "c_user=123; xs=abc; noscript=1;"
     expected_url = \
         "https://5-edge-chat.facebook.com/pull?channel=p_123&seq=1&" + \
-        "partition=-2&clientid=456a&cb=ze0&idle=0&qp=yisq=129169&" + \
+        "partition=-2&clientid=1a2b3c4d&cb=ze0&idle=0&qp=yisq=129169&" + \
         "msgs_recv=0&uid=123&viewer_uid=123&sticky_token=1058&" + \
         "sticky_pool=lla1c22_chat-proxy&state=active"
     expected_timeout = 15

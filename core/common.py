@@ -6,7 +6,7 @@ from collections import OrderedDict
 
 CONFIG_FILENAME = "config/config.json"
 
-CONFIG_KEYS = ['cookie_xs', 'user_id', 'client_id']
+CONFIG_KEYS = ['cookie_xs', 'user_id']
 Config = namedtuple('Config', CONFIG_KEYS)
 
 
@@ -16,15 +16,13 @@ def prettify(decoded_json, indent=4):
 
 def parse_config(config_json):
     """
-    >>> parse_config({ "cookie_xs" : "xs_val", "user_id": "uid_val", \
-            "client_id": "client_val" })
-    Config(cookie_xs='xs_val', user_id='uid_val', client_id='client_val')
-    >>> parse_config({ "cookie_xs" : "", "user_id": "uid_val", \
-            "client_id": "client_val" })
+    >>> parse_config({ "cookie_xs" : "xs_val", "user_id": "uid_val" })
+    Config(cookie_xs='xs_val', user_id='uid_val')
+    >>> parse_config({ "cookie_xs" : "", "user_id": "uid_val" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file does not contain 'cookie_xs'
-    >>> parse_config({ "cookie_xs" : "xs_val", "client_id": "client_val" })
+    >>> parse_config({ "cookie_xs" : "xs_val" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file does not contain 'user_id'

@@ -17,15 +17,16 @@ def create_production_fetcher():
     return FacebookFetcher(downloader, fb_parser, config)
 
 
-def build_buddy_feed_url(user_id, client_id):
+def build_buddy_feed_url(user_id):
     return (
         "https://5-edge-chat.facebook.com/pull?channel=p_{0}&" + \
         # seq = 1 directly gives the full list
         "seq=1&" + \
         "partition=-2&clientid={1}&cb=ze0&idle=0&qp=yisq=129169&" + \
         "msgs_recv=0&uid={0}&viewer_uid={0}&sticky_token=1058&" + \
+        # Hardcoded client_id, any value seems ok as long as there is one
         "sticky_pool=lla1c22_chat-proxy&state=active"). \
-            format(user_id, client_id)
+            format(user_id, "1a2b3c4d")
 
 
 def build_friends_page_url(page_no):
@@ -76,8 +77,7 @@ class FacebookFetcher:
         self.downloader = downloader
         self.fb_parser = fb_parser
         self.cookie = common.build_cookie(config)
-        self.buddy_feed_url = build_buddy_feed_url(
-            config.user_id, config.client_id)
+        self.buddy_feed_url = build_buddy_feed_url(config.user_id)
 
     def fetch_last_active_times(self):
         """ Returns an OrderedDict, mapping user_id to list of epoch times.
