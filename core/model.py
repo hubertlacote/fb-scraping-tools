@@ -196,6 +196,8 @@ def parse_date(date_str):
     datetime.datetime(2011, 4, 22, 20, 34)
     >>> parse_date("9 July 2011")
     datetime.datetime(2011, 7, 9, 0, 0)
+    >>> parse_date("September 2003")
+    datetime.datetime(2003, 9, 1, 0, 0)
     """
 
     try:
@@ -207,7 +209,9 @@ def parse_date(date_str):
         try:
             # We could directly parse all dates with parser,
             # but this allows to have logging only for incomplete dates
-            return parser.parse(date_str)
+            return parser.parse(
+                date_str, default=datetime(
+                    year=datetime.now().year, month=1, day=1))
 
         except Exception:
 
