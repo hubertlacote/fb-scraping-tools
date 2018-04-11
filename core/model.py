@@ -1,8 +1,6 @@
 from collections import OrderedDict
 from datetime import datetime, timedelta
 from dateutil import parser
-import copy
-import dataset
 import logging
 import re
 
@@ -147,49 +145,3 @@ def parse_date(date_str):
             else:
                 logging.error("Failed to parse date: {0}".format(date_str))
                 return datetime.now()
-
-
-def date_to_epoch(date):
-    """
-    >>> date_to_epoch(datetime(2011, 4, 22, 20, 34))
-    1303497240
-    """
-    return (int)(date.strftime("%s"))
-
-
-def save_to_db(data, database_path):
-
-    if type(data) != list:
-        logging.error("Invalid input - not a JSON list")
-        return
-
-    try:
-        db = dataset.connect("sqlite:///{0}".format(database_path))
-
-        times_table_name = "times"
-        db.create_table(times_table_name, primary_id="_id")
-        with db as tx:
-
-            for user_data in data:
-
-                if type(user_data) != OrderedDict:
-                    logging.error(
-                        "Invalid input - not a JSON list of dictionary")
-                    return
-
-                required_fields = [
-                    'id', "time"
-                ]
-                for required_field in required_fields:
-                    if required_field not in user_data:
-                        logging.error("Invalid input - not found '{0}'".format(
-                            required_field))
-                        return
-
-                tx[times_table_name].insert(user_data)
-
-    except Exception as e:
-
-        logging.error(
-            "Failed to write to DB '{0}', "
-            "got exception '{1}'".format(database_path, e))
