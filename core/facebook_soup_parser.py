@@ -452,7 +452,9 @@ show_more_link='')
         soup = BeautifulSoup(content, "lxml")
 
         main_soup = soup.find(
-            id=["tlFeed", "timelineBody", "m_group_stories_container"])
+            id=[
+                "tlFeed", "timelineBody", "m_group_stories_container",
+                "structured_composer_async_container"])
         if not main_soup:
 
             logging.error(detect_error_type(content))
