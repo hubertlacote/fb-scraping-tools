@@ -214,7 +214,7 @@ class FacebookSoupParser:
             user_info["name"] = name_tag.text
 
         timeline_tag = soup.find(href=re.compile(
-            "^/.*\?v=timeline.lst=\d+%3A\d+%3A"))
+            r"^/.*\?v=timeline.lst=\d+%3A\d+%3A"))
         if not timeline_tag:
 
             logging.error(detect_error_type(content))

@@ -79,7 +79,7 @@ def get_user_id(user_ref):
     >>> get_user_id("profile.php?id=151")
     151
     """
-    is_id = re.match("^\d+$", str(user_ref))
+    is_id = re.match(r"^\d+$", str(user_ref))
     if is_id or "profile.php?id=" in user_ref:
         return int(str(user_ref).replace("profile.php?id=", ""))
     else:
