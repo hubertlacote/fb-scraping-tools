@@ -16,15 +16,22 @@ def detect_error_type(content):
     """
     >>> detect_error_type('<input name="login">Login requested')
     'Cookie expired or is invalid, login requested'
+    >>> detect_error_type('<div id="objects_container"><span class="bb">' + \
+        'The page you requested cannot be displayed at the moment. ' + \
+        'It may be temporarily unavailable, the link you clicked on may ' + \
+        'be broken or expired, or you may not have permission to view ' + \
+        'this page.</span></div>')
+    'Page temporarily unavailable / broken / expired link'
     >>> detect_error_type('<html></html>')
     'Failed to parse page'
     """
     soup = BeautifulSoup(content, "lxml")
 
-    login_found = soup.find("input", attrs={"name": "login"})
-
-    if login_found:
+    if soup.find("input", attrs={"name": "login"}):
         return "Cookie expired or is invalid, login requested"
+    elif soup.find_all(
+            "span", string=re.compile("It may be temporarily unavailable")):
+        return "Page temporarily unavailable / broken / expired link"
     else:
         return "Failed to parse page"
 
