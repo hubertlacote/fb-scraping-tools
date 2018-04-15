@@ -152,7 +152,7 @@ class FacebookFetcher:
         infos = {}
         for user_no, user_ref in enumerate(user_refs, 1):
 
-            logging.info("Processing {0} - {1}/{2}".format(
+            logging.info("Processing user '{0}' - {1}/{2}".format(
                 user_ref, user_no, len(user_refs)))
 
             user_id = get_user_id(user_ref)
@@ -179,7 +179,7 @@ class FacebookFetcher:
             except Exception as e:
                 if user_id:
                     infos[user_ref] = OrderedDict([("id", user_id)])
-                logging.warn(
+                logging.error(
                     "Error while downloading page '{0}', "
                     "got exception: '{1}'".format(url, e))
 
@@ -256,7 +256,8 @@ class FacebookFetcher:
 
                     show_more_link = result.show_more_link
                     if show_more_link:
-                        logging.info("Found show more link")
+                        logging.info("Found show more link: {0}".format(
+                            build_relative_url(show_more_link)))
                         links_to_explore.append(
                             build_relative_url(show_more_link))
 
