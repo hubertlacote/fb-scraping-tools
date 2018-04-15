@@ -12,14 +12,21 @@ import re
 TimelineResult = namedtuple('TimelineResult', ['articles', 'show_more_link'])
 
 
-def detect_and_log_error_type(soup):
+def detect_error_type(content):
+    """
+    >>> detect_error_type('<input name="login">Login requested')
+    'Cookie expired or is invalid, login requested'
+    >>> detect_error_type('<html></html>')
+    'Failed to parse page'
+    """
+    soup = BeautifulSoup(content, "lxml")
 
     login_found = soup.find("input", attrs={"name": "login"})
 
     if login_found:
-        logging.error("Cookie expired or is invalid, login requested.")
+        return "Cookie expired or is invalid, login requested"
     else:
-        logging.error("Failed to parse page")
+        return "Failed to parse page"
 
 
 class FacebookSoupParser:
@@ -202,7 +209,7 @@ class FacebookSoupParser:
             "^/.*\?v=timeline.lst=\d+%3A\d+%3A"))
         if not timeline_tag:
 
-            detect_and_log_error_type(soup)
+            logging.error(detect_error_type(content))
             return None
 
         user_id = int(timeline_tag.attrs["href"].split(
@@ -309,7 +316,7 @@ class FacebookSoupParser:
         main_soup = soup.find(id="friends_center_main")
         if not main_soup:
 
-            detect_and_log_error_type(soup)
+            logging.error(detect_error_type(content))
             return friends_found
 
         links_soup = main_soup.find_all("a")
@@ -367,7 +374,7 @@ class FacebookSoupParser:
             id=["tlFeed", "timelineBody", "m_group_stories_container"])
         if not main_soup:
 
-            detect_and_log_error_type(soup)
+            logging.error(detect_error_type(content))
             return links_found
 
         links_soup = main_soup.find_all('a')
@@ -441,7 +448,7 @@ show_more_link='')
             id=["tlFeed", "timelineBody", "m_group_stories_container"])
         if not main_soup:
 
-            detect_and_log_error_type(soup)
+            logging.error(detect_error_type(content))
             return None
 
         articles_found = OrderedDict()
@@ -507,7 +514,7 @@ show_more_link='')
         main_soup = soup.find(id="objects_container")
         if not main_soup:
 
-            detect_and_log_error_type(soup)
+            logging.error(detect_error_type(content))
             return None
 
         links_soup = main_soup.find_all(href=re.compile("^/.*"))
