@@ -241,18 +241,7 @@ class FacebookFetcher:
                         raise RuntimeError(
                             "Failed to parse timeline - no result")
 
-                    for article_id in result.articles:
-                        article_date = result.articles[article_id]
-                        date_parsed = str(model.parse_date(article_date))
-                        logging.info(
-                            "Found article {0} - date: {1} - {2}".format(
-                                article_id, article_date, date_parsed))
-                        articles_found[user_ref]["posts"][article_id] = \
-                            OrderedDict([
-                                ("post_id", article_id),
-                                ("date", date_parsed),
-                                ("date_org", article_date)
-                            ])
+                    articles_found[user_ref]["posts"].update(result.articles)
 
                     show_more_link = result.show_more_link
                     if show_more_link:

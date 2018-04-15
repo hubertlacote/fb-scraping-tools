@@ -431,34 +431,13 @@ def test_fetch_articles_from_timelines_visits_all_links():
     expected_results = OrderedDict([
         ("mark", OrderedDict([
             ("posts", OrderedDict([
-                (100, OrderedDict([
-                    ('post_id', 100),
-                    ('date', '2008-05-13 10:02:00'),
-                    ('date_org', '13 May 2008 at 10:02')])),
-                (200, OrderedDict([
-                    ('post_id', 200),
-                    ('date', '2008-05-13 10:25:00'),
-                    ('date_org', '13 May 2008 at 10:25')])),
-                (300, OrderedDict([
-                    ('post_id', 300),
-                    ('date', '2008-05-15 11:02:00'),
-                    ('date_org', '15 May 2008 at 11:02')])),
-                (400, OrderedDict([
-                    ('post_id', 400),
-                    ('date', '2007-02-01 09:00:00'),
-                    ('date_org', '1 February 2007 at 09:00')])),
-                (500, OrderedDict([
-                    ('post_id', 500),
-                    ('date', '2007-02-02 10:00:00'),
-                    ('date_org', '2 February 2007 at 10:00')])),
-                (600, OrderedDict([
-                    ('post_id', 600),
-                    ('date', '2007-02-03 11:00:00'),
-                    ('date_org', '3 February 2007 at 11:00')])),
-                (700, OrderedDict([
-                    ('post_id', 700),
-                    ('date', '2007-02-04 12:00:00'),
-                    ('date_org', '4 February 2007 at 12:00')]))
+                (100, "orderedDict1"),
+                (200, "orderedDict2"),
+                (300, "orderedDict3"),
+                (400, "orderedDict4"),
+                (500, "orderedDict5"),
+                (600, "orderedDict6"),
+                (700, "orderedDict7")
                 ]))
             ]))
     ])
@@ -481,28 +460,34 @@ def test_fetch_articles_from_timelines_visits_all_links():
             mock_fb_parser.parse_timeline_page.side_effect = [
                 TimelineResult(
                     articles=OrderedDict([
-                        (100, '13 May 2008 at 10:02'),
-                        (200, '13 May 2008 at 10:25')]),
+                        (100, "orderedDict1"),
+                        (200, "orderedDict2")
+                    ]),
                     show_more_link="/ShowMoreFromMainPage"),
                 TimelineResult(
                     articles=OrderedDict([
-                        (300, '15 May 2008 at 11:02')]),
+                        (300, "orderedDict3")
+                    ]),
                     show_more_link=""),
                 TimelineResult(
                     articles=OrderedDict([
-                        (400, '1 February 2007 at 09:00')]),
+                        (400, "orderedDict4")
+                    ]),
                     show_more_link=""),
                 TimelineResult(
                     articles=OrderedDict([
-                        (500, '2 February 2007 at 10:00')]),
+                        (500, "orderedDict5")
+                    ]),
                     show_more_link="/ShowMoreFromLink1-1"),
                 TimelineResult(
                     articles=OrderedDict([
-                        (600, '3 February 2007 at 11:00')]),
+                        (600, "orderedDict6")
+                    ]),
                     show_more_link="/ShowMoreFromLink1-2"),
                 TimelineResult(
                     articles=OrderedDict([
-                        (700, '4 February 2007 at 12:00')]),
+                        (700, "orderedDict7")
+                    ]),
                     show_more_link=""),
             ]
 

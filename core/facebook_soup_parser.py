@@ -1,4 +1,5 @@
 from core import common
+from core import model
 
 from bs4 import BeautifulSoup
 from collections import namedtuple
@@ -393,62 +394,130 @@ class FacebookSoupParser:
 
         return links_found
 
+    def parse_post(self, soup):
+        """
+        >>> FacebookSoupParser().parse_post(BeautifulSoup('''
+        ...     <div role="article">
+        ...         <abbr>13 May 2008 at 10:02</abbr>
+        ...         <span id="like_151">
+        ...             <a aria-label="10 reactions, including Like and \
+Love" href="/link1">10</a>
+        ...             <a href="/link2">React</a>
+        ...         </span>
+        ...         <a href="/link3">12 Comments</a>
+        ...     </div>''', 'lxml'))
+        OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+('date_org', '13 May 2008 at 10:02'), ('like_count', 10), \
+('comment_count', 12)])
+        >>> FacebookSoupParser().parse_post(BeautifulSoup('''
+        ...     <div role="article">
+        ...         <abbr>14 May 2008 at 10:02</abbr>
+        ...         <span id="like_152">
+        ...             <a href="/link1">Like</a>
+        ...             <a href="/link2">React</a>
+        ...         </span>
+        ...         <a href="/link3">Comment</a>
+        ...     </div>''', 'lxml'))
+        OrderedDict([('post_id', 152), ('date', '2008-05-14 10:02:00'), \
+('date_org', '14 May 2008 at 10:02'), ('like_count', 0), ('comment_count', 0)])
+        >>> FacebookSoupParser().parse_post(BeautifulSoup('''
+        ...     <div role="article">
+        ...     </div>''', 'lxml'))
+        >>> FacebookSoupParser().parse_post(BeautifulSoup('''
+        ...     <div role="article">
+        ...         <abbr>14 May 2008 at 10:02</abbr>
+        ...     </div>''', 'lxml'))
+        """
+        date_tag = soup.find("abbr")
+        if not date_tag:
+            logging.info("Skipping original article shared.")
+            return None
+        date_org = date_tag.text
+        date = str(model.parse_date(date_org))
+
+        span_tag = soup.find(id=re.compile(r"like_\d+"))
+        if not span_tag:
+            logging.info("Skipping article - no link for likes found.")
+            return None
+        article_id = int(re.findall(r'\d+', span_tag.attrs["id"])[0])
+
+        like_count = 0
+        reaction_link = span_tag.find(
+            'a', attrs={"aria-label": re.compile(r"\d+ reaction.*")})
+        if reaction_link:
+            like_count = int(
+                reaction_link.attrs["aria-label"].split(" reaction")[0])
+
+        comment_count = 0
+        comment_link = soup.find("a", string=re.compile(r"\d+ Comment"))
+        if comment_link:
+            comment_count = int(comment_link.text.split(" Comment")[0])
+
+        return OrderedDict([
+            ("post_id", article_id), ("date", date), ("date_org", date_org),
+            ("like_count", like_count), ("comment_count", comment_count)])
+
     def parse_timeline_page(self, content):
         """
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="tlFeed">
         ...         <div role="article">
         ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_1">
-        ...                 <a href="/link1">Like</a>
-        ...                 <a href="/badLink1">React</a>
-        ...             </span>
+        ...             <span id="like_151"></span>
         ...         </div>
         ...         <div role="article">
         ...             <abbr>13 May 2008 at 10:25</abbr>
-        ...             <span id="like_2">
-        ...                 <a href="/link2">Like</a>
-        ...                 <a href="/badLink2">React</a>
-        ...             </span>
+        ...             <span id="like_152"></span>
         ...         </div>
         ...         <div>
         ...             <a href="/show_more_link">Show more</a>
         ...         </div>
         ...     </div>''')
-        TimelineResult(articles=OrderedDict([(1, '13 May 2008 at 10:02'), \
-(2, '13 May 2008 at 10:25')]), show_more_link='/show_more_link')
+        TimelineResult(articles=OrderedDict([\
+(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
+('comment_count', 0)])), \
+(152, OrderedDict([('post_id', 152), ('date', '2008-05-13 10:25:00'), \
+('date_org', '13 May 2008 at 10:25'), ('like_count', 0), \
+('comment_count', 0)]))]), show_more_link='/show_more_link')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="timelineBody">
         ...         <div role="article">
         ...             <div role="article">
         ...             </div>
         ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_1">
-        ...                 <a href="/link1">Like</a>
-        ...                 <a href="/badLink1">React</a>
-        ...             </span>
+        ...             <span id="like_151"></span>
         ...         </div>
         ...     </div>''')
-        TimelineResult(articles=OrderedDict([(1, '13 May 2008 at 10:02')]), \
-show_more_link='')
+        TimelineResult(articles=OrderedDict([\
+(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
+('comment_count', 0)]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="m_group_stories_container">
         ...         <div role="article">
-        ...             <div role="article">
-        ...             </div>
         ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_1">
-        ...                 <a href="/link1">Like</a>
-        ...                 <a href="/badLink1">React</a>
-        ...             </span>
+        ...             <span id="like_151"></span>
         ...         </div>
         ...     </div>''')
-        TimelineResult(articles=OrderedDict([(1, '13 May 2008 at 10:02')]), \
-show_more_link='')
+        TimelineResult(articles=OrderedDict([\
+(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
+('comment_count', 0)]))]), show_more_link='')
+        >>> FacebookSoupParser().parse_timeline_page('''
+        ...     <div id="structured_composer_async_container">
+        ...         <div role="article">
+        ...             <abbr>13 May 2008 at 10:02</abbr>
+        ...             <span id="like_151"></span>
+        ...         </div>
+        ...     </div>''')
+        TimelineResult(articles=OrderedDict([\
+(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
+('comment_count', 0)]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <input name="login" type="submit" value="Log In">''')
         """
-
         soup = BeautifulSoup(content, "lxml")
 
         main_soup = soup.find(
@@ -464,25 +533,14 @@ show_more_link='')
         articles_soup = main_soup.find_all("div", attrs={"role": "article"})
         for article in articles_soup:
 
-            abbr_tag = article.find("abbr")
-            if not abbr_tag:
-                logging.info("Skipping original article shared.")
-                continue
-
-            span_tag = article.find(id=re.compile("like_\d+"))
-            if not span_tag:
-                logging.info("Skipping article - no link for likes found.")
-                continue
-
-            article_id = int(re.findall(r'\d+', span_tag.attrs["id"])[0])
-
-            if article_id in articles_found:
-                # Can happen when adding photos to albums
+            post = self.parse_post(article)
+            if post:
                 logging.info(
-                    "Overriding date for article '{0}': "
-                    "old date: '{1}' - new date: '{2}'".format(
-                        article_id, articles_found[article_id], abbr_tag.text))
-            articles_found[article_id] = abbr_tag.text
+                    "Found post: {0}".format(post))
+                # The same post_id might be returned several times,
+                # e.g. when adding photos to albums. Overwrite, since
+                # only the date will change.
+                articles_found[post["post_id"]] = post
 
         show_more_link_tag = soup.find(
             "a", string=["Show more", "See more posts"])
