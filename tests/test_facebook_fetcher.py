@@ -511,6 +511,67 @@ def test_fetch_articles_from_timelines_visits_all_links():
                     ])
 
 
+def test_fetch_articles_from_timelines_is_resilient_to_fb_parser_failure():
+
+    expected_urls = \
+        [
+            "https://mbasic.facebook.com/mark?v=timeline",
+            "https://mbasic.facebook.com/Link2FromMainPage",
+            "https://mbasic.facebook.com/Link1FromMainPage"
+        ]
+    expected_results = OrderedDict([
+        ("mark", OrderedDict([
+            ("posts", OrderedDict([
+                (300, "orderedDict3")
+                ]))
+            ]))
+    ])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [create_ok_return_value("mainPage")] + \
+                [fake_return_value] * (len(expected_urls) - 1)
+
+            mock_fb_parser.parse_timeline_years_links.return_value =\
+                ["/Link1FromMainPage", "/Link2FromMainPage"]
+
+            mock_fb_parser.parse_timeline_page.side_effect = [
+                RuntimeError(),
+                None,
+                TimelineResult(
+                    articles=OrderedDict([
+                        (300, "orderedDict3")
+                    ]),
+                    show_more_link=""),
+            ]
+
+            res = fb_fetcher.fetch_articles_from_timeline(["mark"])
+
+            assert res == expected_results
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_timeline_years_links.assert_called_once_with(
+                "mainPage")
+            mock_fb_parser.parse_timeline_page.assert_has_calls(
+                [call("mainPage")] + [
+                        call(
+                            fake_return_value.text
+                        ) for i in range(0, len(expected_urls) - 1)
+                    ])
+
+
 def test_fetch_reactions_per_user_for_articles():
 
     input_articles = [
