@@ -409,6 +409,21 @@ Love" href="/link1">10</a>
         OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 10), \
 ('comment_count', 12)])
+
+        >>> FacebookSoupParser().parse_post(BeautifulSoup('''
+        ...     <div role="article">
+        ...         <abbr>13 May 2008 at 10:02</abbr>
+        ...         <span id="like_151">
+        ...             <a aria-label="114K reactions, including Like, Love \
+and Wow" href="/link1">114,721</a>
+        ...             <a href="/link2">React</a>
+        ...         </span>
+        ...         <a href="/link3">2,746 Comments</a>
+        ...     </div>''', 'lxml'))
+        OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+('date_org', '13 May 2008 at 10:02'), ('like_count', 114721), \
+('comment_count', 2746)])
+
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
         ...         <abbr>14 May 2008 at 10:02</abbr>
@@ -420,9 +435,11 @@ Love" href="/link1">10</a>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 152), ('date', '2008-05-14 10:02:00'), \
 ('date_org', '14 May 2008 at 10:02'), ('like_count', 0), ('comment_count', 0)])
+
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
         ...     </div>''', 'lxml'))
+
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
         ...         <abbr>14 May 2008 at 10:02</abbr>
@@ -443,15 +460,15 @@ Love" href="/link1">10</a>
 
         like_count = 0
         reaction_link = span_tag.find(
-            'a', attrs={"aria-label": re.compile(r"\d+ reaction.*")})
+            'a', attrs={"aria-label": re.compile(r"reaction")})
         if reaction_link:
-            like_count = int(
-                reaction_link.attrs["aria-label"].split(" reaction")[0])
+            like_count = int(reaction_link.text.replace(",", ""))
 
         comment_count = 0
         comment_link = soup.find("a", string=re.compile(r"\d+ Comment"))
         if comment_link:
-            comment_count = int(comment_link.text.split(" Comment")[0])
+            comment_count = int(
+                comment_link.text.split(" Comment")[0].replace(",", ""))
 
         return OrderedDict([
             ("post_id", article_id), ("date", date), ("date_org", date_org),
