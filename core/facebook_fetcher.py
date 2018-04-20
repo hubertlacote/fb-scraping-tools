@@ -8,11 +8,10 @@ import logging
 import re
 
 
-def create_production_fetcher():
+def create_production_fetcher(config):
 
     downloader = Downloader()
     fb_parser = FacebookSoupParser()
-    config = common.load_config()
 
     return FacebookFetcher(downloader, fb_parser, config)
 

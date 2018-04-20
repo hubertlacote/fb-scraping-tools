@@ -31,8 +31,6 @@ def interrupt_handler(times):
 
 if __name__ == "__main__":
 
-    common.configure_logging(logging.INFO)
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-t', dest='poll_secs', type=int, action='store',
@@ -52,7 +50,9 @@ if __name__ == "__main__":
     logging.info(
         "Delay between each poll: {0} second(s)".format(delay_secs))
 
-    fb_fetcher = create_production_fetcher()
+    config = common.configure(caching_secs_override=-1)
+
+    fb_fetcher = create_production_fetcher(config)
 
     last_active_times = {}
 

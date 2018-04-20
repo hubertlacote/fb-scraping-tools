@@ -1,4 +1,6 @@
 {
+    "caching_secs": -1,
     "cookie_xs": "",
     "cookie_c_user": "",
+    "logging_level": "INFO"
 }

@@ -10,9 +10,6 @@ from unittest.mock import call, ANY
 
 def test_fetch_lat_calls_downloader_correctly():
 
-    config = common.Config(
-        cookie_xs="abc", cookie_c_user="123")
-
     expected_cookie = "c_user=123; xs=abc; noscript=1;"
     expected_url = \
         "https://5-edge-chat.facebook.com/pull?channel=p_123&seq=1&" + \
@@ -27,7 +24,7 @@ def test_fetch_lat_calls_downloader_correctly():
         with create_mock_facebook_parser() as mock_fb_parser:
 
             fb_fetcher = FacebookFetcher(
-                mock_downloader, mock_fb_parser, config)
+                mock_downloader, mock_fb_parser, create_fake_config())
             fb_fetcher.fetch_last_active_times()
 
             mock_downloader.fetch_url.assert_called_once_with(

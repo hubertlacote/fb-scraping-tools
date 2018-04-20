@@ -39,4 +39,7 @@ def create_service_unavailable_return_value():
 
 def create_fake_config():
     return common.Config(
-        cookie_xs="abc", cookie_c_user="123")
+        caching_secs=-1,
+        cookie_xs="abc",
+        cookie_c_user="123",
+        logging_level="INFO")

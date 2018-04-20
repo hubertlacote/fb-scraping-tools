@@ -3,13 +3,11 @@
 from core import common
 from core.facebook_fetcher import create_production_fetcher
 
-import logging
-
 if __name__ == "__main__":
 
-    common.configure_logging(logging.INFO)
+    config = common.configure(caching_secs_override=-1)
 
-    fb_fetcher = create_production_fetcher()
+    fb_fetcher = create_production_fetcher(config)
 
     last_active_times = fb_fetcher.fetch_last_active_times()
     print(common.prettify(last_active_times))

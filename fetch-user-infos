@@ -7,11 +7,7 @@ import argparse
 import logging
 import sys
 
-import requests_cache
-
 if __name__ == "__main__":
-
-    common.configure_logging(logging.INFO)
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -27,10 +23,9 @@ if __name__ == "__main__":
         parser.print_help(file=sys.stderr)
         sys.exit(1)
 
-    # Enable caching (2 hrs) to avoid hitting Facebook too much
-    requests_cache.install_cache(expire_after=7200)
+    config = common.configure()
 
-    fb_fetcher = create_production_fetcher()
+    fb_fetcher = create_production_fetcher(config)
 
     ids = []
     if args.read_from_standard_input:

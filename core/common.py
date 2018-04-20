@@ -1,12 +1,13 @@
 import json
 import logging
 import os
+import requests_cache
 from collections import namedtuple
 from collections import OrderedDict
 
 CONFIG_FILENAME = "config/config.json"
 
-CONFIG_KEYS = ['cookie_xs', 'cookie_c_user']
+CONFIG_KEYS = ['caching_secs', 'cookie_xs', 'cookie_c_user', 'logging_level']
 Config = namedtuple('Config', CONFIG_KEYS)
 
 
@@ -16,21 +17,59 @@ def prettify(decoded_json, indent=4):
 
 def parse_config(config_json):
     """
-    >>> parse_config({ "cookie_xs" : "xs_val", "cookie_c_user": "uid_val" })
-    Config(cookie_xs='xs_val', cookie_c_user='uid_val')
-    >>> parse_config({ "cookie_xs" : "", "cookie_c_user": "uid_val" })
+    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "xs_val",\
+    "cookie_c_user": "uid_val", "logging_level": "INFO" })
+    Config(caching_secs=-1, cookie_xs='xs_val', cookie_c_user='uid_val', \
+logging_level=20)
+
+    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "",\
+    "cookie_c_user": "uid_val", "logging_level": "INFO" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file does not contain 'cookie_xs'
-    >>> parse_config({ "cookie_xs" : "xs_val" })
+
+    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "xs_val",\
+    "logging_level": "INFO" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file does not contain 'cookie_c_user'
+
+    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "xs_val",\
+    "cookie_c_user": "uid_val", "logging_level": "HORROR" })
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Configuration file contains an invalid 'logging_level'
+
+    >>> parse_config({ "caching_secs": "-10000", "cookie_xs" : "xs_val",\
+    "cookie_c_user": "uid_val", "logging_level": "INFO" })
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Configuration file contains an invalid 'caching_secs' - \
+allowed: -1: disabled - 0: cache forever - >0: cache for x seconds
     """
     for key in CONFIG_KEYS:
-        if key not in config_json or not config_json[key]:
+        if key not in config_json or config_json[key] == "":
             raise RuntimeError(
                 "Configuration file does not contain '{0}'".format(key))
+
+    try:
+        config_json["logging_level"] = getattr(
+            logging, config_json["logging_level"])
+    except Exception:
+        raise RuntimeError(
+            "Configuration file contains an invalid 'logging_level'")
+
+    is_int = True
+    try:
+        config_json["caching_secs"] = int(config_json["caching_secs"])
+    except Exception:
+        is_int = False
+    finally:
+        if not is_int or config_json["caching_secs"] < -1:
+            raise RuntimeError(
+                "Configuration file contains an invalid 'caching_secs' - " +
+                "allowed: " +
+                "-1: disabled - 0: cache forever - >0: cache for x seconds")
 
     return Config(
         *[config_json[key] for key in CONFIG_KEYS])
@@ -73,14 +112,35 @@ def load_config():
         load_json_from_file(CONFIG_FILENAME))
 
 
+def configure(caching_secs_override=None):
+
+    logging.basicConfig(
+        format='%(asctime)s %(filename)s:%(lineno)d:'
+        ' %(levelname)s: %(message)s', level=logging.ERROR)
+
+    config = load_config()
+
+    logging.getLogger().setLevel(config.logging_level)
+
+    caching_secs = config.caching_secs
+    if caching_secs_override and \
+       caching_secs_override != caching_secs:
+        logging.info("Overriding configuration - Caching disabled.")
+        caching_secs = caching_secs_override
+
+    if caching_secs == 0:
+        logging.info("Caching enabled: cache does not expîre")
+        requests_cache.install_cache(expire_after=None)
+    elif caching_secs > 0:
+        logging.info("Caching enabled: cache expires after {0}s".format(
+            caching_secs))
+        requests_cache.install_cache(expire_after=caching_secs)
+
+    return config
+
+
 def build_cookie(config):
     return "c_user={0}; xs={1}; noscript=1;".format(
         config.cookie_c_user,
         config.cookie_xs
     )
-
-
-def configure_logging(logging_level):
-    logging.basicConfig(
-        format='%(asctime)s %(filename)s:%(lineno)d:'
-        ' %(levelname)s: %(message)s', level=logging_level)

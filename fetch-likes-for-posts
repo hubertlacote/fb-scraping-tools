@@ -7,16 +7,11 @@ import logging
 import sys
 from collections import OrderedDict
 
-import requests_cache
-
 if __name__ == "__main__":
 
-    common.configure_logging(logging.INFO)
+    config = common.configure()
 
-    # Enable caching (2 hrs) to avoid hitting Facebook too much
-    requests_cache.install_cache(expire_after=7200)
-
-    fb_fetcher = create_production_fetcher()
+    fb_fetcher = create_production_fetcher(config)
 
     articles = common.load_json_from_fd(sys.stdin)
 
