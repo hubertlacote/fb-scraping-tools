@@ -11,7 +11,7 @@ from unittest.mock import call, ANY
 def test_fetch_lat_calls_downloader_correctly():
 
     config = common.Config(
-        cookie_xs="abc", user_id="123")
+        cookie_xs="abc", cookie_c_user="123")
 
     expected_cookie = "c_user=123; xs=abc; noscript=1;"
     expected_url = \

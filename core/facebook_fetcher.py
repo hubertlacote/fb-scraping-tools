@@ -92,7 +92,7 @@ class FacebookFetcher:
         self.downloader = downloader
         self.fb_parser = fb_parser
         self.cookie = common.build_cookie(config)
-        self.buddy_feed_url = build_buddy_feed_url(config.user_id)
+        self.buddy_feed_url = build_buddy_feed_url(config.cookie_c_user)
 
     def fetch_last_active_times(self):
         """ Returns an OrderedDict, mapping user_id to list of epoch times.
