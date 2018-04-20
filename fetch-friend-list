@@ -4,10 +4,13 @@ from core import common
 from core.facebook_fetcher import create_production_fetcher
 
 import logging
+import sys
 
 if __name__ == "__main__":
 
     config = common.configure()
+    if not config:
+        sys.exit(1)
 
     fb_fetcher = create_production_fetcher(config)
 

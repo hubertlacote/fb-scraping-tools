@@ -108,8 +108,14 @@ def load_json_from_file(filepath):
 
 
 def load_config():
-    return parse_config(
-        load_json_from_file(CONFIG_FILENAME))
+    try:
+        config_json = load_json_from_file(CONFIG_FILENAME)
+        if config_json:
+            return parse_config(config_json)
+    except Exception as e:
+        logging.error("Failed to load configuration file '{0}': {1}".format(
+            CONFIG_FILENAME, e))
+    return None
 
 
 def configure(caching_secs_override=None):
@@ -119,6 +125,8 @@ def configure(caching_secs_override=None):
         ' %(levelname)s: %(message)s', level=logging.ERROR)
 
     config = load_config()
+    if not config:
+        return None
 
     logging.getLogger().setLevel(config.logging_level)
 

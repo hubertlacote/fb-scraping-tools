@@ -24,6 +24,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
     config = common.configure()
+    if not config:
+        sys.exit(1)
 
     fb_fetcher = create_production_fetcher(config)
 

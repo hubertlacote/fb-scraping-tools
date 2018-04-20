@@ -51,6 +51,8 @@ if __name__ == "__main__":
         "Delay between each poll: {0} second(s)".format(delay_secs))
 
     config = common.configure(caching_secs_override=-1)
+    if not config:
+        sys.exit(1)
 
     fb_fetcher = create_production_fetcher(config)
 
