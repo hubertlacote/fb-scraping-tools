@@ -714,7 +714,65 @@ def test_fetch_reactions_per_user_for_articles():
                 ]
 
             res = fb_fetcher.fetch_reactions_per_user_for_articles(
-                input_articles)
+                input_articles, False)
+
+            assert res == expected_results
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)] * len(expected_urls))
+
+
+def test_fetch_reactions_per_user_for_articles_can_exclude_non_users():
+
+    input_articles = [
+        OrderedDict([
+            ('post_id', 100),
+            ('date', '2008-05-13 10:02:00'),
+            ('date_org', '13 May 2008 at 10:02')])
+    ]
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=10000&total_count=10000&ft_ent_identifier=100"
+    ]
+
+    expected_results = OrderedDict([
+        ('user.name', {
+            "likes": [
+                OrderedDict([
+                    ('post_id', 100),
+                    ('date', '2008-05-13 10:02:00'),
+                    ('date_org', '13 May 2008 at 10:02')])
+            ]
+        })
+    ])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [fake_return_value] * len(expected_urls)
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ["a/profile.php?fan&id=1234&origin=liked_menu&gfid=AB12CD",
+                     "SomeGroup/",
+                     "user.name"]
+                ]
+
+            res = fb_fetcher.fetch_reactions_per_user_for_articles(
+                input_articles, True)
 
             assert res == expected_results
 

@@ -95,6 +95,27 @@ def get_user_id(user_ref):
         return None
 
 
+def is_user(username):
+    """
+    >>> is_user("SomeName/")
+    False
+    >>> is_user("a/profile.php?fan&id=1234&origin=liked_menu&gfid=AB12CD")
+    False
+    >>> is_user("SomeName /")
+    False
+    >>> is_user("profile.php?id=1234")
+    True
+    >>> is_user("some.name")
+    True
+    """
+    if username[-1:] == "/":
+        return False
+    elif "profile.php?fan" in username:
+        return False
+    else:
+        return True
+
+
 class FacebookFetcher:
 
     def __init__(self, downloader, fb_parser, config):
@@ -293,7 +314,8 @@ class FacebookFetcher:
 
         return articles_found
 
-    def fetch_reactions_per_user_for_articles(self, articles):
+    def fetch_reactions_per_user_for_articles(self,
+                                              articles, exclude_non_users):
         """ Return a dictionary mapping users who liked articles
         to the list of articles they liked.
 
@@ -334,12 +356,14 @@ class FacebookFetcher:
                     len(usernames), usernames))
 
                 for username in usernames:
-                    if username not in reactions_per_user:
-                        reactions_per_user[username] = {}
-                        reactions_per_user[username]["likes"] = []
-                    reactions_per_user[username]["likes"].append(
-                        article
-                    )
+                    if not exclude_non_users or \
+                       (exclude_non_users and is_user(username)):
+                        if username not in reactions_per_user:
+                            reactions_per_user[username] = {}
+                            reactions_per_user[username]["likes"] = []
+                        reactions_per_user[username]["likes"].append(
+                            article
+                        )
 
             except Exception as e:
                 logging.error(

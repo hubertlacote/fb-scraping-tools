@@ -5,4 +5,4 @@ set -e
 
 where_am_i="${0%/*}"
 
-${where_am_i}/../fetch-timeline-posts $@ | ${where_am_i}/extract-all-posts-from-timeline-posts | ${where_am_i}/../fetch-likes-for-posts
+${where_am_i}/../fetch-timeline-posts $@ | ${where_am_i}/extract-all-posts-from-timeline-posts | ${where_am_i}/../fetch-likes-for-posts -e

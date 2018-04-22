@@ -3,11 +3,18 @@
 from core import common
 from core.facebook_fetcher import create_production_fetcher
 
+import argparse
 import logging
 import sys
 from collections import OrderedDict
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        '-e', dest='exclude_non_users', action='store_true',
+        help="Exclude non users (e.g. Pages)")
+    args = parser.parse_args()
 
     config = common.configure()
     if not config:
@@ -27,6 +34,7 @@ if __name__ == "__main__":
             "the key post_id for every post.")
         sys.exit(1)
 
-    reactions = fb_fetcher.fetch_reactions_per_user_for_articles(articles)
+    reactions = fb_fetcher.fetch_reactions_per_user_for_articles(
+        articles, args.exclude_non_users)
 
     print(common.prettify(reactions))
