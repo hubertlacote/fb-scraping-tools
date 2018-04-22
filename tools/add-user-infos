@@ -10,15 +10,18 @@ usage() {
     echo -e "Usage: ${0} -f INPUT_FILE [-l]\n" >&2
     echo -e "\t-f\tInput file containing a list of user ids / usernames or - for standard input"
     echo -e "\t-l\tFetch the name of people from friend list (faster for long list of friends)"
+    echo -e "\t-m\tFetch mutual friends (ignored with -l)"
     exit 1
 }
 
 input_file=""
 use_friend_list=0
-while getopts "f:l" option_name; do
+fetch_mutual_friends=""
+while getopts "f:lm" option_name; do
     case $option_name in
         f) input_file="${OPTARG:-}";;
         l) use_friend_list=1;;
+        m) fetch_mutual_friends="-m";;
         *) usage;;
     esac
 done
@@ -35,7 +38,7 @@ cat "${input_file}" > "${input_file_dup}"
 if [[ $use_friend_list -eq 1 ]]; then
     ${where_am_i}/../fetch-friend-list > "${user_infos_file}"
 else
-    cat "${input_file_dup}" | ${where_am_i}/../fetch-user-infos -i > "${user_infos_file}"
+    cat "${input_file_dup}" | ${where_am_i}/../fetch-user-infos ${fetch_mutual_friends} -i > "${user_infos_file}"
 fi
 
 # Combine the two JSON files
