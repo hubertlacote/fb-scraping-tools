@@ -20,11 +20,12 @@ usage() {
 input_file=""
 compact=""
 pattern=""
+extra=""
 while getopts "f:clpt" option_name; do
     case $option_name in
         f) input_file="${OPTARG:-}";;
         c) compact="-c";;
-        l) pattern=".likes[]?.date";;
+        l) pattern=".likes[]?.date"; extra='mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))';;
         p) pattern=".posts[]?.date";;
         t) pattern=".times[]?";;
         *) usage;;
@@ -43,5 +44,6 @@ cat "${input_file}" | jq ${compact} '[.[] |
       gender: (.gender // ""),
       relationship: (.relationship // ""),
       work: (.work // ""),
-      year_of_birth: (.year_of_birth // "")
+      year_of_birth: (.year_of_birth // ""),
+      '${extra}'
     }]'
