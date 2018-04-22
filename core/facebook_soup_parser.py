@@ -338,6 +338,58 @@ class FacebookSoupParser:
 
         return friends_found
 
+    def parse_mutual_friends_page(self, content):
+        """Extract information from a mutual friends page.
+
+        Returns an OrderedDict([('username1', {'name': 'name1'}), ...]) mapping
+        usernames to names.
+
+        >>> FacebookSoupParser().parse_mutual_friends_page('''
+        ...     <div id="objects_container">
+        ...         <a href="/some/other/link">
+        ...         <a href="some/other?fref=fr_tab"></a>
+        ...         <a href="/username.1?fref=fr_tab">Name 1</a>
+        ...         <a href="/username.2?fref=fr_tab&refid=17">Name 2</a>
+        ...     </div>''')
+        OrderedDict([('username.1', OrderedDict([('name', 'Name 1')])), \
+('username.2', OrderedDict([('name', 'Name 2')]))])
+        >>> FacebookSoupParser().parse_mutual_friends_page('''
+        ...     <div id="objects_container">
+        ...         <a href="/privacyx/selector/">
+        ...         <a href="/friends/center/friends/?ppk=1&amp;
+        ...             tid=u_0_0&amp;bph=1#friends_center_main">
+        ...     </div>''')
+        OrderedDict()
+        >>> FacebookSoupParser().parse_mutual_friends_page('''
+        ...     <div id="objects_container">
+        ...     </div>''')
+        OrderedDict()
+        >>> FacebookSoupParser().parse_mutual_friends_page("")
+        OrderedDict()
+        >>> FacebookSoupParser().parse_mutual_friends_page('''
+        ...     <input name="login" type="submit" value="Log In">''')
+        OrderedDict()
+        """
+
+        soup = BeautifulSoup(content, "lxml")
+
+        mutual_friends_found = OrderedDict()
+
+        main_soup = soup.find(id="objects_container")
+        if not main_soup:
+
+            logging.error(detect_error_type(content))
+            return mutual_friends_found
+
+        links_soup = main_soup.find_all(
+            "a", attrs={"href": re.compile(r"^/.*\?fref=fr_tab")})
+        for link in links_soup:
+            username = link.attrs["href"][1:].split("?fref=fr_tab")[0]
+            mutual_friends_found[username] =\
+                OrderedDict([("name", link.text)])
+
+        return mutual_friends_found
+
     def parse_timeline_years_links(self, content):
         """
         >>> FacebookSoupParser().parse_timeline_years_links('''
