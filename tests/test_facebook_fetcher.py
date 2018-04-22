@@ -241,7 +241,7 @@ def test_fetch_user_infos_handles_ids_and_usernames():
                 fake_infos_user_paul
             ]
 
-            res = fb_fetcher.fetch_user_infos(user_ids)
+            res = fb_fetcher.fetch_user_infos(user_ids, False)
 
             assert res == expected_results
 
@@ -265,6 +265,73 @@ def test_fetch_user_infos_handles_ids_and_usernames():
                 call("content3"),
                 call("content4")
             ])
+
+
+def test_fetch_user_infos_can_fetch_mutual_friends():
+
+    user_ids = [110]
+
+    expected_about_page_url = \
+        "https://mbasic.facebook.com/profile.php?v=info&id=110"
+    expected_mutual_friends_url = \
+        "https://mbasic.facebook.com/profile.php?v=friends&mutual=1&\
+lst=123:110:1&id=110"
+
+    fake_mutual_friends = OrderedDict([
+        ('mutual.friend.1', OrderedDict([
+            ('name', "Mutual friend 1")
+        ])),
+        ('mutual.friend.2', OrderedDict([
+            ('name', "Mutual friend 2")
+        ]))
+    ])
+
+    fake_user_infos = OrderedDict(
+        [('id', 110), ('Name', 'Mark')])
+
+    fake_user_infos_with_mutual_friends = \
+        fake_user_infos
+    fake_user_infos_with_mutual_friends["mutual_friends"] = \
+        fake_mutual_friends
+
+    expected_results = {
+        110: fake_user_infos_with_mutual_friends,
+    }
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            mock_downloader.fetch_url.side_effect = [
+                create_ok_return_value("aboutPageContent"),
+                create_ok_return_value("mutualFriendsPageContent")
+            ]
+            mock_fb_parser.parse_about_page.side_effect = [
+                fake_user_infos
+            ]
+            mock_fb_parser.parse_mutual_friends_page.side_effect = [
+                fake_mutual_friends
+            ]
+
+            res = fb_fetcher.fetch_user_infos(user_ids, True)
+
+            assert res == expected_results
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_about_page_url,
+                    cookie=ANY, timeout_secs=ANY, retries=ANY),
+                call(
+                    url=expected_mutual_friends_url,
+                    cookie=ANY, timeout_secs=ANY, retries=ANY)
+            ])
+            mock_fb_parser.parse_about_page.assert_has_calls([
+                call("aboutPageContent")])
+            mock_fb_parser.parse_mutual_friends_page.assert_has_calls([
+                call("mutualFriendsPageContent")])
 
 
 def test_fetch_user_infos_is_resilient_to_downloader_exception():
@@ -297,7 +364,7 @@ def test_fetch_user_infos_is_resilient_to_downloader_exception():
             ]
             mock_fb_parser.parse_about_page.return_value = fake_infos_user_111
 
-            res = fb_fetcher.fetch_user_infos([110, 111])
+            res = fb_fetcher.fetch_user_infos([110, 111], False)
 
             assert res == expected_results
 
@@ -345,7 +412,7 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_exception():
                 fake_infos_user_111
             ]
 
-            res = fb_fetcher.fetch_user_infos([110, 111])
+            res = fb_fetcher.fetch_user_infos([110, 111], False)
 
             assert res == expected_results
 
@@ -396,7 +463,7 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_failure():
                 fake_infos_user_111
             ]
 
-            res = fb_fetcher.fetch_user_infos([110, 111])
+            res = fb_fetcher.fetch_user_infos([110, 111], False)
 
             assert res == expected_results
 

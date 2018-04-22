@@ -43,6 +43,16 @@ def build_about_page_url_from_username(username):
         format(username)
 
 
+def build_mutual_friends_page_url_from_id(c_user, user_id):
+    """
+    >>> build_mutual_friends_page_url_from_id(123, 456)
+    'https://mbasic.facebook.com/profile.php?v=friends&mutual=1&\
+lst=123:456:1&id=456'
+    """
+    return "https://mbasic.facebook.com/profile.php?v=friends&mutual=1&" + \
+        "lst={0}:{1}:{2}&id={1}".format(c_user, user_id, 1)
+
+
 def build_timeline_page_url_from_username(username):
     return "https://mbasic.facebook.com/{0}?v=timeline". \
         format(username)
@@ -92,6 +102,7 @@ class FacebookFetcher:
         self.fb_parser = fb_parser
         self.cookie = common.build_cookie(config)
         self.buddy_feed_url = build_buddy_feed_url(config.cookie_c_user)
+        self.c_user = config.cookie_c_user
 
     def fetch_last_active_times(self):
         """ Returns an OrderedDict, mapping user_id to list of epoch times.
@@ -142,7 +153,14 @@ class FacebookFetcher:
                     "got exception: '{1}'".format(url, e))
                 return friend_list
 
-    def fetch_user_infos(self, user_refs):
+    def fetch_user_infos(self, user_refs, fetch_mutual_friends):
+        """ Fetch details about some users from their about page.
+
+        fetch_mutual_friends: if True, fetch the list of mutual friends.
+        Only the first page of mutual friends is fetched / parsed.
+        Adding "&startindex=36" to the url would return the next 35 friends
+        and so on...
+        """
 
         logging.info(
             "Querying '{0}' users from Facebook".
@@ -166,14 +184,31 @@ class FacebookFetcher:
 
                 user_infos = self.fb_parser.parse_about_page(
                     response.text)
-                if not user_infos:
+                if not user_infos \
+                   or "id" not in user_infos or not user_infos["id"]:
                     raise RuntimeError(
                         "Failed to extract infos for user {0}".format(
                             user_ref))
-                infos[user_ref] = user_infos
 
                 logging.info("Got infos for user '{0}' - {1}".format(
                     user_ref, common.prettify(user_infos)))
+
+                if fetch_mutual_friends:
+                    mutual_friends_url = \
+                        build_mutual_friends_page_url_from_id(
+                            self.c_user, user_infos["id"])
+                    response = self.downloader.fetch_url(
+                        cookie=self.cookie, url=mutual_friends_url,
+                        timeout_secs=15, retries=5)
+                    mutual_friends = \
+                        self.fb_parser.parse_mutual_friends_page(
+                            response.text)
+                    user_infos["mutual_friends"] = mutual_friends
+
+                    logging.info("Mutual friends for user '{0}': {1}".format(
+                        user_ref, common.prettify(mutual_friends)))
+
+                infos[user_ref] = user_infos
 
             except Exception as e:
                 if user_id:
