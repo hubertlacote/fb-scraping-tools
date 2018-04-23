@@ -25,7 +25,7 @@ while getopts "f:clpt" option_name; do
     case $option_name in
         f) input_file="${OPTARG:-}";;
         c) compact="-c";;
-        l) pattern=".likes[]?.date"; extra='mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))';;
+        l) pattern=".likes[]?.date"; extra='post_id:.likes[]?.post_id,mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))';;
         p) pattern=".posts[]?.date";;
         t) pattern=".times[]?";;
         *) usage;;
