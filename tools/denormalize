@@ -18,27 +18,28 @@ usage() {
 }
 
 input_file=""
-compact=""
-pattern=""
+compact_flag=""
+denormalizing_pass=".[]"
 extra=""
 while getopts "f:clpt" option_name; do
     case $option_name in
         f) input_file="${OPTARG:-}";;
-        c) compact="-c";;
-        l) pattern=".likes[]?.date"; extra='post_id:.likes[]?.post_id,mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))';;
-        p) pattern=".posts[]?.date";;
-        t) pattern=".times[]?";;
+        c) compact_flag="-c";;
+        l) denormalizing_pass='.[]|{id,name,education,gender,relationship,work,year_of_birth,mutual_friends,like:.likes[]?}';
+           extra='post_id:.like.post_id,time:.like.date,mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))';
+        ;;
+        p) extra="time:.posts[]?.date";;
+        t) extra="time:.times[]?";;
         *) usage;;
     esac
 done
 
 [[ -n "${input_file}" ]] || usage "Input file not provided."
-[[ -n "${pattern}" ]] || usage "Please specify -t or -l."
+[[ -n "${extra}" ]] || usage "Please specify -l, -p or -t."
 
-cat "${input_file}" | jq ${compact} '[.[] |
+cat "${input_file}" | jq ${compact_flag} '['${denormalizing_pass}' |
     {
       id: (.id // empty),
-      time: '${pattern}',
       name: (.name // ""),
       education: (.education // ""),
       gender: (.gender // ""),
