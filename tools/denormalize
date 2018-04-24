@@ -21,14 +21,15 @@ input_file=""
 compact_flag=""
 denormalizing_pass=".[]"
 extra=""
+mutual_friends_filter='mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))'
 while getopts "f:clpt" option_name; do
     case $option_name in
         f) input_file="${OPTARG:-}";;
         c) compact_flag="-c";;
         l) denormalizing_pass='.[]|{id,name,education,gender,relationship,work,year_of_birth,mutual_friends,like:.likes[]?}';
-           extra='post_id:.like.post_id,time:.like.date,mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))';
+           extra="post_id:.like.post_id,time:.like.date,${mutual_friends_filter}";
         ;;
-        p) extra="time:.posts[]?.date";;
+        p) extra="time:.posts[]?.date,${mutual_friends_filter}";;
         t) extra="time:.times[]?";;
         *) usage;;
     esac
