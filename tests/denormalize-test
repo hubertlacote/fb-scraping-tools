@@ -1,0 +1,621 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+###############
+# Test helpers
+###############
+
+assertStringsEqual() {
+  local expected_output="${1}"
+  local output="${2}"
+
+  [[ "${expected_output}" = "${output}" ]] || {
+    echo "Expected: '${expected_output}'" >&2
+    echo "Got: '${output}'" >&2
+    return 1;
+  }
+  return 0;
+}
+
+#######################
+# Testing test helpers
+#######################
+
+testStringEquals() {
+  assertStringsEqual "some result" "some result" || return 1
+  assertStringsEqual "some result" "other result" 2>/dev/null && return 1
+  assertStringsEqual "multi
+  line
+  result" "multi
+  line
+  result" || return 1
+  assertStringsEqual "multi
+  line
+  result" "multi
+  line
+  result
+  a bit different" 2>/dev/null && return 1
+
+  return 0
+}
+
+######################
+# Testing denormalize
+######################
+
+test_denormalize_posts_with_several_users_and_several_posts() {
+  local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -p -f -
+{
+    "user1": {
+        "name": "User name 1",
+        "id": 11111111,
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "mutual_friends": {
+            "mutualfriend1": {
+                "name": "Mutual Friend 1"
+            },
+            "mutualfriend2": {
+                "name": "Mutual Friend 2"
+            }
+        },
+        "posts": {
+            "123456789000000001": {
+                "post_id": 123456789000000001,
+                "date": "2018-04-01 08:30:00",
+                "date_org": "1 April at 08:30",
+                "like_count": 3,
+                "comment_count": 1
+            },
+            "123456789000000002": {
+                "post_id": 123456789000000002,
+                "date": "2018-04-02 09:30:00",
+                "date_org": "2 April at 09:30",
+                "like_count": 30,
+                "comment_count": 10
+            }
+        }
+    },
+    "user2": {
+        "name": "User name 2",
+        "id": 22222222,
+        "gender": "Female",
+        "year_of_birth": 1981,
+        "education": "University name 2",
+        "relationship": "Married",
+        "work": "Work place 2",
+        "mutual_friends": {
+            "mutualfriend3": {
+                "name": "Mutual Friend 3"
+            },
+            "mutualfriend1": {
+                "name": "Mutual Friend 1"
+            }
+        },
+        "posts": {
+            "456789123000000001": {
+                "post_id": 456789123000000001,
+                "date": "2018-05-01 10:30:00",
+                "date_org": "1 May at 10:30",
+                "like_count": 5,
+                "comment_count": 2
+            }
+        }
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 11111111,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "time": "2018-04-01 08:30:00",
+    "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
+  },
+  {
+    "id": 11111111,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "time": "2018-04-02 09:30:00",
+    "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
+  },
+  {
+    "id": 22222222,
+    "name": "User name 2",
+    "education": "University name 2",
+    "gender": "Female",
+    "relationship": "Married",
+    "work": "Work place 2",
+    "year_of_birth": 1981,
+    "time": "2018-05-01 10:30:00",
+    "mutual_friends": "Mutual Friend 1,Mutual Friend 3"
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_posts_without_most_user_infos() {
+  local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -p -f -
+{
+    "user1": {
+        "id": 11111111,
+        "mutual_friends": {
+            "mutualfriend1": {
+                "name": "Mutual Friend 1"
+            }
+        },
+        "posts": {
+            "123456789000000001": {
+                "post_id": 123456789000000001,
+                "date": "2018-04-01 08:30:00",
+                "date_org": "1 April at 08:30",
+                "like_count": 3,
+                "comment_count": 1
+            }
+        }
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 11111111,
+    "name": "",
+    "education": "",
+    "gender": "",
+    "relationship": "",
+    "work": "",
+    "year_of_birth": "",
+    "time": "2018-04-01 08:30:00",
+    "mutual_friends": "Mutual Friend 1"
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_posts_skips_users_without_id() {
+  local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -p -f -
+{
+    "user1": {
+        "name": "User name 1",
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "mutual_friends": {
+            "mutualfriend1": {
+                "name": "Mutual Friend 1"
+            }
+        },
+        "posts": {
+            "123456789000000001": {
+                "post_id": 123456789000000001,
+                "date": "2018-04-01 08:30:00",
+                "date_org": "1 April at 08:30",
+                "like_count": 3,
+                "comment_count": 1
+            }
+        }
+    },
+    "user2": {
+        "name": "User name 2",
+        "id": 22222222,
+        "gender": "Female",
+        "year_of_birth": 1981,
+        "education": "University name 2",
+        "relationship": "Married",
+        "work": "Work place 2",
+        "mutual_friends": {
+            "mutualfriend3": {
+                "name": "Mutual Friend 3"
+            }
+        },
+        "posts": {
+            "456789123000000001": {
+                "post_id": 456789123000000001,
+                "date": "2018-05-01 10:30:00",
+                "date_org": "1 May at 10:30",
+                "like_count": 5,
+                "comment_count": 2
+            }
+        }
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 22222222,
+    "name": "User name 2",
+    "education": "University name 2",
+    "gender": "Female",
+    "relationship": "Married",
+    "work": "Work place 2",
+    "year_of_birth": 1981,
+    "time": "2018-05-01 10:30:00",
+    "mutual_friends": "Mutual Friend 3"
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_posts_works_with_empty_mutual_friends() {
+  local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -p -f -
+{
+    "user1": {
+        "name": "User name 1",
+        "id": 11111111,
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "mutual_friends": {},
+        "posts": {
+            "123456789000000001": {
+                "post_id": 123456789000000001,
+                "date": "2018-04-01 08:30:00",
+                "date_org": "1 April at 08:30",
+                "like_count": 3,
+                "comment_count": 1
+            }
+        }
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 11111111,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "time": "2018-04-01 08:30:00",
+    "mutual_friends": ""
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_posts_works_without_mutual_friends() {
+  local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -p -f -
+{
+    "user1": {
+        "name": "User name 1",
+        "id": 11111111,
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "posts": {
+            "123456789000000001": {
+                "post_id": 123456789000000001,
+                "date": "2018-04-01 08:30:00",
+                "date_org": "1 April at 08:30",
+                "like_count": 3,
+                "comment_count": 1
+            }
+        }
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 11111111,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "time": "2018-04-01 08:30:00",
+    "mutual_friends": ""
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_posts_can_have_compact_output() {
+  local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -c -p -f -
+{
+    "user1": {
+        "name": "User name 1",
+        "id": 11111111,
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "posts": {
+            "123456789000000001": {
+                "post_id": 123456789000000001,
+                "date": "2018-04-01 08:30:00",
+                "date_org": "1 April at 08:30",
+                "like_count": 3,
+                "comment_count": 1
+            }
+        }
+    }
+}
+EOF
+)
+
+  local expected_output='[{"id":11111111,"name":"User name 1","education":"University name","gender":"Male","relationship":"In a relationship","work":"Work place","year_of_birth":1980,"time":"2018-04-01 08:30:00","mutual_friends":""}]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_likes_with_several_likers_and_several_likes() {
+    local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -l -f -
+{
+    "profile.php?id=123456789": {
+        "name": "User name 1",
+        "id": 123456789,
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "mutual_friends": {
+            "mutualfriend1": {
+                "name": "Mutual Friend 1"
+            },
+            "mutualfriend2": {
+                "name": "Mutual Friend 2"
+            }
+        },
+        "likes":[
+          {
+            "post_id": 1111111111111111,
+            "date": "2017-12-17 23:01:00",
+            "date_org": "17 December 2017 at 23:01"
+          },
+          {
+            "post_id": 1111111111111112,
+            "date": "2016-12-18 23:02:00",
+            "date_org": "17 December 2017 at 23:02"
+          }
+        ]
+    },
+    "liker2": {
+        "name": "User name 2",
+        "id": 22222222,
+        "gender": "Female",
+        "year_of_birth": 1981,
+        "education": "University name 2",
+        "relationship": "Married",
+        "work": "Work place 2",
+        "mutual_friends": {
+            "mutualfriend3": {
+                "name": "Mutual Friend 3"
+            },
+            "mutualfriend1": {
+                "name": "Mutual Friend 1"
+            }
+        },
+        "likes":[
+          {
+            "post_id": 1111111111111113,
+            "date": "2017-12-19 23:03:00",
+            "date_org": "19 December 2017 at 23:03"
+          }
+        ]
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 123456789,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "post_id": 1111111111111111,
+    "time": "2017-12-17 23:01:00",
+    "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
+  },
+  {
+    "id": 123456789,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "post_id": 1111111111111112,
+    "time": "2016-12-18 23:02:00",
+    "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
+  },
+  {
+    "id": 22222222,
+    "name": "User name 2",
+    "education": "University name 2",
+    "gender": "Female",
+    "relationship": "Married",
+    "work": "Work place 2",
+    "year_of_birth": 1981,
+    "post_id": 1111111111111113,
+    "time": "2017-12-19 23:03:00",
+    "mutual_friends": "Mutual Friend 1,Mutual Friend 3"
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_likes_works_without_user_infos_and_mutual_friends() {
+    local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -l -f -
+{
+    "profile.php?id=123456789": {
+        "id": 123456789,
+        "likes":[
+          {
+            "post_id": 1111111111111111,
+            "date": "2017-12-17 23:01:00",
+            "date_org": "17 December 2017 at 23:01"
+          }
+        ]
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 123456789,
+    "name": "",
+    "education": "",
+    "gender": "",
+    "relationship": "",
+    "work": "",
+    "year_of_birth": "",
+    "post_id": 1111111111111111,
+    "time": "2017-12-17 23:01:00",
+    "mutual_friends": ""
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+test_denormalize_last_active_times_with_several_users_and_several_times() {
+    local output=$(cat << EOF | ${where_am_i}/../tools/denormalize -t -f -
+{
+    "111111111": {
+        "name": "User name 1",
+        "id": 111111111,
+        "gender": "Male",
+        "year_of_birth": 1980,
+        "education": "University name",
+        "relationship": "In a relationship",
+        "work": "Work place",
+        "times":[
+          "2018-04-24 19:01:02",
+          "2018-04-24 19:02:03"
+        ]
+    },
+    "22222222": {
+        "name": "User name 2",
+        "id": 22222222,
+        "gender": "Female",
+        "year_of_birth": 1981,
+        "education": "University name 2",
+        "relationship": "Married",
+        "work": "Work place 2",
+        "times":[
+          "2018-04-25 20:01:02"
+        ]
+    }
+}
+EOF
+)
+
+  local expected_output='[
+  {
+    "id": 111111111,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "time": "2018-04-24 19:01:02"
+  },
+  {
+    "id": 111111111,
+    "name": "User name 1",
+    "education": "University name",
+    "gender": "Male",
+    "relationship": "In a relationship",
+    "work": "Work place",
+    "year_of_birth": 1980,
+    "time": "2018-04-24 19:02:03"
+  },
+  {
+    "id": 22222222,
+    "name": "User name 2",
+    "education": "University name 2",
+    "gender": "Female",
+    "relationship": "Married",
+    "work": "Work place 2",
+    "year_of_birth": 1981,
+    "time": "2018-04-25 20:01:02"
+  }
+]'
+
+  assertStringsEqual "${expected_output}" "${output}"
+}
+
+##############
+# Test runner
+##############
+
+FAILURE_COUNT=0
+
+addFailure() {
+  echo "${1} FAILED (exit status: $?)" >&2
+  FAILURE_COUNT=$(( $FAILURE_COUNT + 1 ))
+}
+
+runTest() {
+  test_fn="${1}"
+  "${test_fn}" || addFailure "${test_fn}"
+}
+
+echo "$(basename $0) running..."
+
+runTest "testStringEquals"
+
+runTest "test_denormalize_posts_with_several_users_and_several_posts"
+runTest "test_denormalize_posts_without_most_user_infos"
+runTest "test_denormalize_posts_skips_users_without_id"
+runTest "test_denormalize_posts_works_with_empty_mutual_friends"
+runTest "test_denormalize_posts_works_without_mutual_friends"
+runTest "test_denormalize_posts_can_have_compact_output"
+
+runTest "test_denormalize_likes_with_several_likers_and_several_likes"
+runTest "test_denormalize_likes_works_without_user_infos_and_mutual_friends"
+
+runTest "test_denormalize_last_active_times_with_several_users_and_several_times"
+
+[ $FAILURE_COUNT -gt 0 ] && echo "`basename $0` failed" >&2 && exit 1
+
+echo "$(basename $0) SUCCEEDED"
+
+exit 0

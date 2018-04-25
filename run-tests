@@ -8,3 +8,9 @@ pycodestyle --show-source \
   --exclude ".git,__pycache__,tools" "${where_am_i}"
 
 nosetests --with-doctest
+
+# Only run bash tests if jq is installed since
+# jq is not a requirement of the project
+which jq >/dev/null && {
+  ${where_am_i}/tests/denormalize-test
+}
