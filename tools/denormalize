@@ -21,7 +21,7 @@ input_file=""
 compact_flag=""
 denormalizing_pass=".[]"
 extra=""
-mutual_friends_filter='mutual_friends:(.mutual_friends|to_entries|map(.value.name)|sort|join(","))'
+mutual_friends_filter='mutual_friends:((.mutual_friends//{})|to_entries|map(.value.name)|sort|join(","))'
 while getopts "f:clpt" option_name; do
     case $option_name in
         f) input_file="${OPTARG:-}";;
