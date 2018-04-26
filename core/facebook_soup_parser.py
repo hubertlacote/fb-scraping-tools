@@ -11,6 +11,7 @@ import re
 
 
 TimelineResult = namedtuple('TimelineResult', ['articles', 'show_more_link'])
+ReactionResult = namedtuple('ReactionResult', ['likers', 'see_more_link'])
 
 
 def detect_error_type(content):
@@ -646,14 +647,18 @@ show_more_link='/show_more_link')
         ...         <a href="/a/mobile/friends/add_friend.php?id=123"></a>
         ...         <a class="bn" href="badLink2">Dave</a>
         ...         <a href="/ufi/reaction/profile/browser/fetch/?"></a>
+        ...         <div>
+        ...             <a href="/ufi/reaction/link"><span>See more</span></a>
+        ...         </div>
         ...     </div>''')
-        ['username1', 'username2']
+        ReactionResult(likers=['username1', 'username2'], \
+see_more_link='/ufi/reaction/link')
         >>> FacebookSoupParser().parse_reaction_page('''
         ...     <div id="objects_container">
         ...         <span>The page you requested cannot be displayed</span>
         ...         <a href="/home.php?rand=852723744">Back to home</a>
         ...     </div>''')
-        []
+        ReactionResult(likers=[], see_more_link=None)
         >>> FacebookSoupParser().parse_reaction_page('''
         ...     <input name="login" type="submit" value="Log In">''')
         """
@@ -685,4 +690,10 @@ show_more_link='/show_more_link')
                 if username and not is_invalid:
                     usernames_found.append(username)
 
-        return usernames_found
+        see_more_link_tag = main_soup.find("a", string="See more")
+        link_found = None
+        if see_more_link_tag and "href" in see_more_link_tag.attrs:
+            link_found = see_more_link_tag.attrs["href"]
+
+        return ReactionResult(
+            likers=usernames_found, see_more_link=link_found)

@@ -1,6 +1,6 @@
 from core import common
 from core.facebook_fetcher import FacebookFetcher
-from core.facebook_soup_parser import TimelineResult
+from core.facebook_soup_parser import ReactionResult, TimelineResult
 from tests.mocks import create_mock_downloader, create_mock_facebook_parser
 from tests.fakes import create_ok_return_value, create_fake_config
 
@@ -636,6 +636,349 @@ def test_fetch_articles_from_timelines_is_resilient_to_fb_parser_failure():
                     ])
 
 
+def test_fetch_likers_for_article():
+
+    expected_url = \
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" + \
+        "limit=500&total_count=1000000&ft_ent_identifier=100"
+
+    expected_likers = set(["username1", "username2"])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [fake_return_value]
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ReactionResult(
+                        likers=["username1", "username2"],
+                        see_more_link=None)
+                ]
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_url,
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                )
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)])
+
+
+def test_fetch_likers_for_article_continue_until_no_show_more_links():
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&shown_ids=1111%2C2222%2C3333%2C4444&total_count=4&" +
+        "ft_ent_identifier=100",
+    ]
+
+    expected_likers = set(["1111", "2222", "3333", "4444"])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [fake_return_value] * len(expected_urls)
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ReactionResult(
+                        likers=["1111", "2222"],
+                        see_more_link="/ufi/" +
+                                      "reaction/profile/browser/fetch/?" +
+                                      "limit=10&shown_ids=1111%2C2222&" +
+                                      "total_count=4&ft_ent_identifier=100"),
+                    ReactionResult(
+                        likers=["3333", "4444"],
+                        see_more_link="/ufi/" +
+                                      "reaction/profile/browser/fetch/?" +
+                                      "limit=10&shown_ids=1111%2C2222" +
+                                      "%2C3333%2C4444&" +
+                                      "total_count=4&ft_ent_identifier=100"),
+                    ReactionResult(
+                        likers=[],
+                        see_more_link=None)
+                ]
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)] * len(expected_urls))
+
+
+def test_fetch_likers_for_article_retries_5_times_while_decreasing_max_likes():
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=250&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=166&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=125&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=100&total_count=1000000&ft_ent_identifier=100"
+    ]
+
+    expected_likers = set([])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            mock_downloader.fetch_url.side_effect = \
+                [RuntimeError("Boom")] * len(expected_urls)
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+
+
+def test_fetch_likers_for_article_with_success_on_last_retry():
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=250&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=166&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=125&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=100&total_count=1000000&ft_ent_identifier=100"
+    ]
+
+    expected_likers = set(["username1", "username2"])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [RuntimeError("Boom")] * (len(expected_urls) - 1) + \
+                [fake_return_value]
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ReactionResult(
+                        likers=["username1", "username2"],
+                        see_more_link=None)
+                ]
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)])
+
+
+def test_fetch_likers_for_article_with_show_more_links_and_failure():
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=250&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=166&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=125&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=100&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100",
+    ]
+
+    expected_likers = set(["1111", "2222"])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [fake_return_value] + \
+                [RuntimeError("Boom")] * (len(expected_urls) - 1)
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ReactionResult(
+                        likers=["1111", "2222"],
+                        see_more_link="/ufi/" +
+                                      "reaction/profile/browser/fetch/?" +
+                                      "limit=10&shown_ids=1111%2C2222&" +
+                                      "total_count=4&ft_ent_identifier=100")
+                ]
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)])
+
+
+def test_fetch_likers_for_article_with_invalid_see_more_link():
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&total_count=1000000&ft_ent_identifier=100"
+    ]
+
+    expected_likers = set(["1111", "2222"])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [fake_return_value]
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ReactionResult(
+                        likers=["1111", "2222"],
+                        # Limit=666 is invalid as limit=10 is
+                        # hardcoded in FacebookFetcher
+                        see_more_link="/ufi/" +
+                                      "reaction/profile/browser/fetch/?" +
+                                      "limit=666&shown_ids=1111%2C2222&" +
+                                      "total_count=4&ft_ent_identifier=100")
+                ]
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)])
+
+
+def test_fetch_likers_for_article_with_parser_exception():
+
+    expected_urls = [
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&total_count=1000000&ft_ent_identifier=100",
+        "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
+        "limit=500&shown_ids=1111%2C2222&total_count=4&" +
+        "ft_ent_identifier=100"
+    ]
+
+    expected_likers = set(["1111", "2222"])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            fake_return_value = create_ok_return_value()
+            mock_downloader.fetch_url.side_effect = \
+                [fake_return_value] * len(expected_urls)
+
+            mock_fb_parser.parse_reaction_page.side_effect = \
+                [
+                    ReactionResult(
+                        likers=["1111", "2222"],
+                        see_more_link="/ufi/" +
+                                      "reaction/profile/browser/fetch/?" +
+                                      "limit=10&shown_ids=1111%2C2222&" +
+                                      "total_count=4&ft_ent_identifier=100"),
+                    RuntimeError("Boom")
+                ]
+
+            res = fb_fetcher.fetch_likers_for_article(100)
+
+            assert sorted(res) == sorted(expected_likers)
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_fb_parser.parse_reaction_page.assert_has_calls(
+                [call(fake_return_value.text)] * len(expected_urls))
+
+
 def test_fetch_reactions_per_user_for_articles():
 
     input_articles = [
@@ -650,13 +993,13 @@ def test_fetch_reactions_per_user_for_articles():
 
     expected_urls = [
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
-        "limit=10000&total_count=10000&ft_ent_identifier=100",
+        "limit=500&total_count=1000000&ft_ent_identifier=100",
 
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
-        "limit=10000&total_count=10000&ft_ent_identifier=200",
+        "limit=500&total_count=1000000&ft_ent_identifier=200",
 
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
-        "limit=10000&total_count=10000&ft_ent_identifier=300"
+        "limit=500&total_count=1000000&ft_ent_identifier=300"
     ]
 
     expected_results = OrderedDict([
@@ -697,9 +1040,15 @@ def test_fetch_reactions_per_user_for_articles():
 
             mock_fb_parser.parse_reaction_page.side_effect = \
                 [
-                    ["username1", "username2"],
-                    ["username2", "username3"],
-                    []
+                    ReactionResult(
+                        likers=["username1", "username2"],
+                        see_more_link=None),
+                    ReactionResult(
+                        likers=["username2", "username3"],
+                        see_more_link=None),
+                    ReactionResult(
+                        likers=[],
+                        see_more_link=None)
                 ]
 
             res = fb_fetcher.fetch_reactions_per_user_for_articles(
@@ -726,7 +1075,7 @@ def test_fetch_reactions_per_user_for_articles_can_exclude_non_users():
 
     expected_urls = [
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" +
-        "limit=10000&total_count=10000&ft_ent_identifier=100"
+        "limit=500&total_count=1000000&ft_ent_identifier=100"
     ]
 
     expected_results = OrderedDict([
@@ -751,9 +1100,13 @@ def test_fetch_reactions_per_user_for_articles_can_exclude_non_users():
 
             mock_fb_parser.parse_reaction_page.side_effect = \
                 [
-                    ["a/profile.php?fan&id=1234&origin=liked_menu&gfid=AB12CD",
-                     "SomeGroup/",
-                     "user.name"]
+                    ReactionResult(
+                        likers=[
+                            "a/profile.php?fan&id=1234&gfid=AB12CD",
+                            "SomeGroup/",
+                            "user.name"
+                        ],
+                        see_more_link=None)
                 ]
 
             res = fb_fetcher.fetch_reactions_per_user_for_articles(

@@ -63,15 +63,17 @@ def build_timeline_page_url_from_id(id):
         format(id)
 
 
-def build_reaction_page_url(article_id, max_likes):
+def build_reaction_page_url(article_id, max_total_likes):
     """
-    >>> build_reaction_page_url(123, 500)
+    >>> build_reaction_page_url(123, 5000000)
     'https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?\
-limit=500&total_count=500&ft_ent_identifier=123'
+limit={0}&total_count=5000000&ft_ent_identifier=123'
     """
+    # Not replacing limit={0} on purpose
     return \
         "https://mbasic.facebook.com/ufi/reaction/profile/browser/fetch/?" + \
-        "limit={0}&total_count={0}&".format(max_likes) + \
+        "limit={0}" + \
+        "&total_count={0}&".format(max_total_likes) + \
         "ft_ent_identifier={0}".format(article_id)
 
 
@@ -314,6 +316,94 @@ class FacebookFetcher:
 
         return articles_found
 
+    def fetch_likers_for_article(self, article_id):
+        """ Return a set of users / pages who liked the article."""
+
+        max_likes_per_page = 500
+        max_attempts = 5
+
+        likers = set()
+
+        links_to_explore = [build_reaction_page_url(
+            article_id=article_id,
+            max_total_likes=1000000)]
+        links_explored = 1
+        nb_like_found = 0
+
+        while links_to_explore:
+
+            url = links_to_explore.pop()
+            logging.info(
+                "Fetching reactions page {0}, url: {1}".format(
+                    links_explored, common.truncate_text(url, 200)))
+
+            succeeded = False
+            for attempt_no in range(1, max_attempts + 1):
+                current_url = ""
+                try:
+                    current_url = url.format(
+                        max_likes_per_page // attempt_no)
+                    response = self.downloader.fetch_url(
+                        cookie=self.cookie, url=current_url,
+                        timeout_secs=15, retries=5)
+                    succeeded = True
+                    break
+
+                except Exception as e:
+                    logging.info(
+                        "Attempt to fetch '{0}' did not succeed".format(
+                            common.truncate_text(current_url, 200)))
+
+            if not succeeded:
+                logging.error(
+                    "Failed to fetch all reactions for post '{0}'".format(
+                            article_id))
+                break
+
+            try:
+
+                result = self.fb_parser.parse_reaction_page(
+                        response.text)
+                if not result:
+                    raise RuntimeError(
+                        "Failed to fetch reactions - no result")
+
+                nb_like_found += len(result.likers)
+                logging.info("New likers found: {0}".format(
+                    result.likers))
+                logging.info(
+                    "Found {0} like(s) - Total found: {1}".format(
+                        len(result.likers), nb_like_found))
+
+                likers.update(result.likers)
+
+                see_more_link = result.see_more_link
+                if see_more_link:
+                    see_more_link = build_relative_url(
+                        see_more_link)
+
+                    logging.info("Found see more link: {0}".format(
+                        common.truncate_text(see_more_link, 200)))
+                    if "limit=10" not in see_more_link:
+                        logging.error(
+                            "See more link found does not match "
+                            "the expected pattern.")
+                    else:
+                        see_more_link = see_more_link.replace(
+                            "limit=10", "limit={0}")
+                        links_to_explore.append(
+                            see_more_link)
+
+            except Exception as e:
+                logging.error(
+                    "Error while processing page '{0}', "
+                    "got exception: '{1}'".format(
+                        common.truncate_text(url, 200), e))
+
+            links_explored += 1
+
+        return likers
+
     def fetch_reactions_per_user_for_articles(self,
                                               articles, exclude_non_users):
         """ Return a dictionary mapping users who liked articles
@@ -336,38 +426,31 @@ class FacebookFetcher:
                     "Invalid input, every article in the list "
                     "must contain the key post_id")
                 return OrderedDict()
-
             article_id = article["post_id"]
-            article_url = build_reaction_page_url(article_id, 10000)
+
+            like_count = ""
+            if "like_count" in article:
+                like_count = article["like_count"]
 
             logging.info(
-                "Fetching reactions for article {0}/{1} - id: '{2}'".format(
-                    articles_processed + 1, len(articles), article_id))
+                "Fetching {0} reaction(s) for post {1}/{2}, id: '{3}'".format(
+                    like_count, articles_processed + 1,
+                    len(articles), article_id))
 
-            try:
+            likers = sorted(self.fetch_likers_for_article(article_id))
 
-                response = self.downloader.fetch_url(
-                    cookie=self.cookie, url=article_url,
-                    timeout_secs=15, retries=5)
+            logging.info(
+                "Found {0} like(s) / {1} expected".format(
+                    len(likers), like_count))
 
-                usernames = self.fb_parser.parse_reaction_page(
-                        response.text)
-                logging.info("Article got {0} like(s): {1}".format(
-                    len(usernames), usernames))
-
-                for username in usernames:
-                    if not exclude_non_users or \
-                       (exclude_non_users and is_user(username)):
-                        if username not in reactions_per_user:
-                            reactions_per_user[username] = {}
-                            reactions_per_user[username]["likes"] = []
-                        reactions_per_user[username]["likes"].append(
-                            article
-                        )
-
-            except Exception as e:
-                logging.error(
-                    "Error while downloading page '{0}', "
-                    "got exception: '{1}'".format(article_url, e))
+            for username in likers:
+                if not exclude_non_users or \
+                        (exclude_non_users and is_user(username)):
+                    if username not in reactions_per_user:
+                        reactions_per_user[username] = {}
+                        reactions_per_user[username]["likes"] = []
+                    reactions_per_user[username]["likes"].append(
+                        article
+                    )
 
         return reactions_per_user

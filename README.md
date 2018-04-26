@@ -266,6 +266,8 @@ tools/fetch-timeline-likes -u "username" > likes.json
 echo '["username1", "username2"]' | tools/fetch-timeline-likes -i > likes.json
 ```
 
+**Note that Facebook servers do not seem to support to return more than ~5000 likers for any post**, the tool fetches as many likers as Facebook allows.
+
 - [tools/create-visualisable-data-from-timeline-likes](tools/create-visualisable-data-from-timeline-likes) is a shell script that generates JSON viewable with [fb-scraping-tools-viewer](https://github.com/hubertlacote/fb-scraping-tools-viewer) - it makes it possible to see the evolution of likes with time, and to see the biggest likers.
 
 ```bash
