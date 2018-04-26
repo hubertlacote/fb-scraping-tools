@@ -5,10 +5,18 @@ set -e
 
 where_am_i="${0%/*}"
 
-output_file=$(mktemp)
+output_file=""
+cleanup() {
+  trap '' EXIT SIGINT SIGQUIT SIGABRT SIGTERM
+  [[ -z "${output_file}" ]] || rm "${output_file}"
+  exit 0
+}
 
 # Use a temporary file to be able to interrupt with Ctrl-C
+trap cleanup EXIT SIGQUIT SIGABRT SIGTERM
+output_file=$(mktemp lat.XXXXXXXXXX)
 ${where_am_i}/../poll-last-active-times $@ > "${output_file}"
-cat "${output_file}" | ${where_am_i}/add-user-infos -f - | ${where_am_i}/denormalize -c -t -f -
 
-rm "${output_file}"
+# Any interruption with Ctrl+C (SIGINT) will now exit
+trap cleanup EXIT SIGINT SIGQUIT SIGABRT SIGTERM
+cat "${output_file}" | ${where_am_i}/add-user-infos -f - | ${where_am_i}/denormalize -c -t -f -
