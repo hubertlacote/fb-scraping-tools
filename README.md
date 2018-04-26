@@ -191,14 +191,16 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #                "date": "2018-01-01 12:00:00",
 #                "date_org": "1 January at 12:00",
 #                "like_count": 3100,
-#                "comment_count": 100
+#                "comment_count": 100,
+#                "story_link": "https://mbasic.facebook.com/photo.php?fbid=100000000000001&id=someOtherId&..."
 #            },
 #            "100000000000002": {
 #                "post_id": 100000000000002,
 #                "date": "2018-01-02 12:00:00",
 #                "date_org": "2 January at 12:00",
 #                "like_count": 0,
-#                "comment_count": 0
+#                "comment_count": 0,
+#                "story_link": "https://mbasic.facebook.com/story.php?story_fbid=100000000000002&id=someOtherId&..."
 #            },
 #            ...
 #        }
@@ -249,13 +251,11 @@ tools/fetch-timeline-likes -u "username" > likes.json
 #        "likes": [
 #            {
 #                "post_id": 111111111111111,
-#                "date": "2016-01-01 22:00:00",
-#                "date_org": "1 January 2016 at 22:00"
+#                ...
 #            },
 #            {
 #                "post_id": 111111111111112,
-#                "date": "2016-01-01 22:10:00",
-#                "date_org": "1 January 2016 at 22:10"
+#                ...
 #            },
 #            ...
 #        ]

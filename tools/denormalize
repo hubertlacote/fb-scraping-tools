@@ -27,9 +27,10 @@ while getopts "f:clpt" option_name; do
         f) input_file="${OPTARG:-}";;
         c) compact_flag="-c";;
         l) denormalizing_pass='.[]|{id,name,education,gender,relationship,work,year_of_birth,mutual_friends,like:.likes[]?}';
-           extra="post_id:.like.post_id,time:.like.date,${mutual_friends_filter}";
+           extra="time:.like.date,link:.like.story_link,${mutual_friends_filter}";
         ;;
-        p) extra="time:.posts[]?.date,${mutual_friends_filter}";;
+        p) denormalizing_pass='.[]|{id,name,education,gender,relationship,work,year_of_birth,mutual_friends,post:.posts[]?}';
+           extra="time:.post.date,link:.post.story_link,${mutual_friends_filter}";;
         t) extra="time:.times[]?";;
         *) usage;;
     esac

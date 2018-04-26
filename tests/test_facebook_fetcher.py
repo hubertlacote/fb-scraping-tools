@@ -641,16 +641,11 @@ def test_fetch_reactions_per_user_for_articles():
     input_articles = [
         OrderedDict([
             ('post_id', 100),
-            ('date', '2008-05-13 10:02:00'),
-            ('date_org', '13 May 2008 at 10:02')]),
+            ('additional', 'DataAreCopied')]),
         OrderedDict([
-            ('post_id', 200),
-            ('date', '2008-05-13 10:25:00'),
-            ('date_org', '13 May 2008 at 10:25')]),
+            ('post_id', 200)]),
         OrderedDict([
-            ('post_id', 300),
-            ('date', '2008-05-15 11:02:00'),
-            ('date_org', '15 May 2008 at 11:02')])
+            ('post_id', 300)])
     ]
 
     expected_urls = [
@@ -669,28 +664,22 @@ def test_fetch_reactions_per_user_for_articles():
             "likes": [
                 OrderedDict([
                     ('post_id', 100),
-                    ('date', '2008-05-13 10:02:00'),
-                    ('date_org', '13 May 2008 at 10:02')])
+                    ('additional', 'DataAreCopied')])
             ]
         }),
         ('username2', {
             "likes": [
                 OrderedDict([
                     ('post_id', 100),
-                    ('date', '2008-05-13 10:02:00'),
-                    ('date_org', '13 May 2008 at 10:02')]),
+                    ('additional', 'DataAreCopied')]),
                 OrderedDict([
-                    ('post_id', 200),
-                    ('date', '2008-05-13 10:25:00'),
-                    ('date_org', '13 May 2008 at 10:25')])
+                    ('post_id', 200)])
             ]
         }),
         ('username3', {
             "likes": [
                 OrderedDict([
-                    ('post_id', 200),
-                    ('date', '2008-05-13 10:25:00'),
-                    ('date_org', '13 May 2008 at 10:25')])
+                    ('post_id', 200)])
             ]
         })
     ])
@@ -732,9 +721,7 @@ def test_fetch_reactions_per_user_for_articles_can_exclude_non_users():
 
     input_articles = [
         OrderedDict([
-            ('post_id', 100),
-            ('date', '2008-05-13 10:02:00'),
-            ('date_org', '13 May 2008 at 10:02')])
+            ('post_id', 100)])
     ]
 
     expected_urls = [
@@ -746,9 +733,7 @@ def test_fetch_reactions_per_user_for_articles_can_exclude_non_users():
         ('user.name', {
             "likes": [
                 OrderedDict([
-                    ('post_id', 100),
-                    ('date', '2008-05-13 10:02:00'),
-                    ('date_org', '13 May 2008 at 10:02')])
+                    ('post_id', 100)])
             ]
         })
     ])

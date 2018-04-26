@@ -37,6 +37,11 @@ def detect_error_type(content):
         return "Failed to parse page"
 
 
+def build_relative_url(relative_url):
+    return "https://mbasic.facebook.com{0}". \
+        format(relative_url)
+
+
 class FacebookSoupParser:
 
     def parse_buddy_list(self, raw_json):
@@ -457,10 +462,12 @@ Love" href="/link1">10</a>
         ...             <a href="/link2">React</a>
         ...         </span>
         ...         <a href="/link3">12 Comments</a>
+        ...         <a href="/fullStoryLink">Full Story</a>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 10), \
-('comment_count', 12)])
+('comment_count', 12), \
+('story_link', 'https://mbasic.facebook.com/fullStoryLink')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
@@ -474,7 +481,7 @@ and Wow" href="/link1">114,721</a>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 114721), \
-('comment_count', 2746)])
+('comment_count', 2746), ('story_link', '')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
@@ -486,7 +493,8 @@ and Wow" href="/link1">114,721</a>
         ...         <a href="/link3">Comment</a>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 152), ('date', '2008-05-14 10:02:00'), \
-('date_org', '14 May 2008 at 10:02'), ('like_count', 0), ('comment_count', 0)])
+('date_org', '14 May 2008 at 10:02'), ('like_count', 0), \
+('comment_count', 0), ('story_link', '')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
@@ -522,9 +530,15 @@ and Wow" href="/link1">114,721</a>
             comment_count = int(
                 comment_link.text.split(" Comment")[0].replace(",", ""))
 
+        full_story_link = ""
+        full_story_soup = soup.find("a", string="Full Story")
+        if full_story_soup and "href" in full_story_soup.attrs:
+            full_story_link = build_relative_url(full_story_soup.attrs["href"])
+
         return OrderedDict([
             ("post_id", article_id), ("date", date), ("date_org", date_org),
-            ("like_count", like_count), ("comment_count", comment_count)])
+            ("like_count", like_count), ("comment_count", comment_count),
+            ("story_link", full_story_link)])
 
     def parse_timeline_page(self, content):
         """
@@ -545,10 +559,11 @@ and Wow" href="/link1">114,721</a>
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
-('comment_count', 0)])), \
+('comment_count', 0), ('story_link', '')])), \
 (152, OrderedDict([('post_id', 152), ('date', '2008-05-13 10:25:00'), \
 ('date_org', '13 May 2008 at 10:25'), ('like_count', 0), \
-('comment_count', 0)]))]), show_more_link='/show_more_link')
+('comment_count', 0), ('story_link', '')]))]), \
+show_more_link='/show_more_link')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="timelineBody">
         ...         <div role="article">
@@ -561,7 +576,7 @@ and Wow" href="/link1">114,721</a>
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
-('comment_count', 0)]))]), show_more_link='')
+('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="m_group_stories_container">
         ...         <div role="article">
@@ -572,7 +587,7 @@ and Wow" href="/link1">114,721</a>
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
-('comment_count', 0)]))]), show_more_link='')
+('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="structured_composer_async_container">
         ...         <div role="article">
@@ -583,7 +598,7 @@ and Wow" href="/link1">114,721</a>
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
-('comment_count', 0)]))]), show_more_link='')
+('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <input name="login" type="submit" value="Log In">''')
         """
