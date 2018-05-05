@@ -152,3 +152,18 @@ def build_cookie(config):
         config.cookie_c_user,
         config.cookie_xs
     )
+
+
+def truncate_text(text, max_length):
+    """
+    >>> truncate_text("This is a long text", 4)
+    'This...'
+    >>> truncate_text("Not so long", 11)
+    'Not so long'
+    >>> truncate_text("Short", 100)
+    'Short'
+    """
+    if len(text) > max_length:
+        return (text[:max_length] + '...')
+    else:
+        return text

@@ -1,5 +1,6 @@
 #!  #!/usr/bin/env python3
 
+from core import common
 import logging
 import requests
 
@@ -22,7 +23,8 @@ class Downloader:
         headers["cookie"] = cookie
 
         for attempt_no in range(1, retries + 1):
-            logging.info("Fetching {0} - Attempt {1}".format(url, attempt_no))
+            logging.info("Fetching {0} - Attempt {1}".format(
+                common.truncate_text(url, 200), attempt_no))
 
             try:
                 response = requests.get(
@@ -37,12 +39,14 @@ class Downloader:
                     raise RuntimeError(
                         "Error while downloading page '{0}', "
                         "status code: '{1}' - headers: '{2}'".format(
-                            url, response.status_code, response.headers))
+                            common.truncate_text(url, 200),
+                            response.status_code, response.headers))
 
                 return response
 
             except requests.exceptions.Timeout:
-                logging.warn("Request to '{0}' timed out".format(url))
+                logging.warn("Request to '{0}' timed out".format(
+                    common.truncate_text(url, 200)))
                 if attempt_no == retries:
                     raise
 
