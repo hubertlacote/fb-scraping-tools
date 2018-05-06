@@ -16,6 +16,19 @@ Instead, Facebook Graph API can be used to collect data, even though it sometime
 
 Therefore, I urge you to use this project for educational purpose only, and not to use it to access Facebook.
 
+### Risks of having your profile restricted for 1 week
+
+In case your are still not convinced, Facebook might also restrict your profile from seeing the profiles of anyone other than friends and friends of friends for a week if you use these tools. This is what you might see on [a Facebook notification](https://www.facebook.com/support/?notif_t=feature_limits):
+
+> **You're restricted from seeing the profiles of anyone other than friends and friends of friends.**
+> This restriction is a precaution we use to make sure only people are seeing profile posts, photos and activity.
+
+> **Why you're seeing this**
+> The restriction is typically used only for computers posing as real people, so you may have been restricted by mistake. If so, we're very sorry for the inconvenience and will work to lift the restriction as soon as possible.
+
+> **The restriction has been lifted** (1 week later)
+> You were temporarily restricted from seeing the profiles of anyone other than friends and friends of friends. Recent activity led us to believe that your profile was copying information from other profiles, so the restriction was put in place as a precaution. You may have been restricted by mistake. If so, we're very sorry for the inconvenience this caused.
+
 ## License
 
 MIT (see [LICENSE](LICENSE))
