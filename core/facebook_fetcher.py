@@ -203,7 +203,7 @@ class FacebookFetcher:
 
             try:
                 response = self.downloader.fetch_url(
-                    cookie=self.cookie, url=url, timeout_secs=15, retries=5)
+                    cookie=self.cookie, url=url, timeout_secs=30, retries=5)
 
                 user_infos = self.fb_parser.parse_about_page(
                     response.text)
