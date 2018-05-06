@@ -2,7 +2,8 @@ from collections import namedtuple
 from core.downloader import Downloader
 from tests.fakes import \
     create_ok_return_value, create_ok_return_value_without_text, \
-    create_not_found_return_value, create_service_unavailable_return_value
+    create_not_found_return_value, create_service_unavailable_return_value, \
+    create_internal_server_error_return_value
 
 from unittest.mock import call, patch, ANY
 
@@ -173,6 +174,23 @@ def test_retries_when_timeout_then_ok(mock_requests):
         call(url=ANY, headers=ANY, allow_redirects=ANY, timeout=ANY),
         call(url=ANY, headers=ANY, allow_redirects=ANY, timeout=ANY)
     ])
+
+
+@patch("core.downloader.requests.get")
+def test_exceptions_when_internal_server_error(mock_requests):
+    downloader = Downloader()
+
+    mock_requests.return_value = create_internal_server_error_return_value()
+    got_ex = False
+    try:
+        downloader.fetch_url(FAKE_COOKIE, FAKE_URL)
+
+    except RuntimeError:
+        got_ex = True
+
+    mock_requests.assert_called_once_with(
+        url=ANY, headers=ANY, allow_redirects=ANY, timeout=ANY)
+    assert got_ex
 
 
 @patch("core.downloader.requests.get")

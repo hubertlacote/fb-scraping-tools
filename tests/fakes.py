@@ -29,6 +29,14 @@ def create_not_found_return_value():
     )
 
 
+def create_internal_server_error_return_value():
+    return Fake_Return_Value(
+        status_code=500,
+        text="Internal Server error",
+        headers="Some headers"
+    )
+
+
 def create_service_unavailable_return_value():
     return Fake_Return_Value(
         status_code=503,

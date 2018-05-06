@@ -31,8 +31,14 @@ class Downloader:
                     url=url, headers=headers,
                     allow_redirects=True, timeout=timeout_secs)
 
-                # Treat server errors as timeout so that retries are performed
-                if response.status_code >= 500:
+                # Treat temporary server errors as timeout so that
+                # retries are performed
+                if response.status_code == 503:
+                    logging.warn(
+                        "Request to '{0}' failed, server error: {1} - ".format(
+                            common.truncate_text(url, 200),
+                            response.status_code) +
+                        "Treating as timeout to allow retries.")
                     raise requests.exceptions.Timeout()
 
                 if response.status_code != 200 or not response.text:
