@@ -6,7 +6,21 @@
 
 To learn how to scrape non-interactive websites (with javascript disabled) using [requests](http://docs.python-requests.org/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup).
 
-To show the potential privacy implications that modern social media have.
+To extract data not available easily via Facebook, e.g.:
+
+- Find the most popular posts of any page, can be done with [fetch-timeline-posts](fetch-timeline-posts),
+- Find the birthday dates of all your friends who make it available via Facebook, can be done with [tools/fetch-friend-list-with-details](tools/fetch-friend-list-with-details) and for the one that hid their birthday dates after a few years of using Facebook, it can often still be deduced by checking when users posted on their timelines using [fetch-timeline-posts](fetch-timeline-posts).
+
+To check the potential privacy implications that modern social media have, e.g.:
+
+- Compile a list of all users who like posts from any page / group / user (e.g. find all users who liked posts from [Anonymous Facebook page](https://www.facebook.com/AnonSec/)) however they restricted their profiles, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
+- Deduce a part of the friends of anyone even when they hide their friend list, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
+- Find all users with who you have friends in common that liked a post from a page / group / user (e.g. who from your network like the same music band as you), can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
+
+To check the potential psychological implications that modern social media have, e.g.:
+
+- "According to one Facebook executive, millennials look at their phones on average more than 150 times a day" (Smartphones and anxiety, The Economist, 26/11/2017), can be checked for your friends with [tools/create-visualisable-data-from-last-active-times](tools/create-visualisable-data-from-last-active-times),
+- Find which of your friends is posting the most and the evolution over time, can be done with [tools/create-visualisable-data-from-timeline-posts-of-all-friends](tools/create-visualisable-data-from-timeline-posts-of-all-friends).
 
 ## Disclaimer
 
