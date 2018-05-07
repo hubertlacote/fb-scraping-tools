@@ -6,6 +6,7 @@ from tests.mocks import create_mock_downloader, create_mock_facebook_parser
 from tests.fakes import create_ok_return_value, create_fake_config
 
 from collections import OrderedDict
+from nose.tools import assert_equal
 from unittest.mock import call, Mock, ANY
 
 
@@ -573,11 +574,8 @@ def test_fetch_user_infos_can_fetch_mutual_friends():
 lst=123:110:1&id=110"
 
     fake_mutual_friends = OrderedDict([
-        ('mutual.friend.1', OrderedDict([
+        ('username.1', OrderedDict([
             ('name', "Mutual friend 1")
-        ])),
-        ('mutual.friend.2', OrderedDict([
-            ('name', "Mutual friend 2")
         ]))
     ])
 
@@ -607,13 +605,20 @@ lst=123:110:1&id=110"
             mock_fb_parser.parse_about_page.side_effect = [
                 fake_user_infos
             ]
-            mock_fb_parser.parse_mutual_friends_page.side_effect = [
-                fake_mutual_friends
-            ]
+            mock_fb_parser.parse_mutual_friends_page.return_value = \
+                GenericResult(
+                    content=OrderedDict([
+                        ('mutual_friends',
+                            OrderedDict([(
+                                '/username.1?fref=fr_tab&refid=17',
+                                'Mutual friend 1')]))
+                    ]),
+                    see_more_links=[]
+                )
 
             res = fb_fetcher.fetch_user_infos(user_ids, False, True)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(

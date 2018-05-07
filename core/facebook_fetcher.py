@@ -245,6 +245,29 @@ class FacebookFetcher:
             build_likes_page_from_id(user_id),
             lambda content: self.fb_parser.parse_likes_page(content))
 
+    def do_fetch_mutual_friends(self, user_id):
+
+        result = self.fetch_content_recursively(
+            build_mutual_friends_page_url_from_id(
+                self.c_user, user_id),
+            lambda content: self.fb_parser.parse_mutual_friends_page(content))
+
+        mutual_friends = OrderedDict()
+
+        if not result or "mutual_friends" not in result:
+            logging.error("Error while fetching mutual friends")
+            return mutual_friends
+
+        for mutual_friend_link in result["mutual_friends"]:
+            friend_name = result["mutual_friends"][mutual_friend_link]
+            username = mutual_friend_link
+            mutual_friends[username] = {"name": friend_name}
+
+        logging.info("Mutual friends for user '{0}': {1}".format(
+            user_id, common.prettify(mutual_friends)))
+
+        return mutual_friends
+
     def fetch_user_infos(self, user_refs, fetch_likes, fetch_mutual_friends):
         """ Fetch details about some users from their about page.
 
@@ -291,19 +314,8 @@ class FacebookFetcher:
                         user_infos["id"])
 
                 if fetch_mutual_friends:
-                    mutual_friends_url = \
-                        build_mutual_friends_page_url_from_id(
-                            self.c_user, user_infos["id"])
-                    response = self.downloader.fetch_url(
-                        cookie=self.cookie, url=mutual_friends_url,
-                        timeout_secs=15, retries=5)
-                    mutual_friends = \
-                        self.fb_parser.parse_mutual_friends_page(
-                            response.text)
-                    user_infos["mutual_friends"] = mutual_friends
-
-                    logging.info("Mutual friends for user '{0}': {1}".format(
-                        user_ref, common.prettify(mutual_friends)))
+                    user_infos["mutual_friends"] = \
+                        self.do_fetch_mutual_friends(user_infos["id"])
 
                 infos[user_ref] = user_infos
 

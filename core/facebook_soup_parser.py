@@ -515,45 +515,63 @@ see_more_links=[])
         ...         <a href="some/other?fref=fr_tab"></a>
         ...         <a href="/username.1?fref=fr_tab">Name 1</a>
         ...         <a href="/username.2?fref=fr_tab&refid=17">Name 2</a>
+        ...         <div id="m_more_mutual_friends">
+        ...             <a href="/seeMoreLink">
+        ...                 <span>195 more mutual friends</span>
+        ...             </a></div>
         ...     </div>''')
-        OrderedDict([('username.1', OrderedDict([('name', 'Name 1')])), \
-('username.2', OrderedDict([('name', 'Name 2')]))])
+        GenericResult(content=OrderedDict([('mutual_friends', OrderedDict([\
+('username.1?fref=fr_tab', 'Name 1'), \
+('username.2?fref=fr_tab&refid=17', 'Name 2')]))]), \
+see_more_links=['/seeMoreLink'])
+
         >>> FacebookSoupParser().parse_mutual_friends_page('''
         ...     <div id="objects_container">
         ...         <a href="/privacyx/selector/">
         ...         <a href="/friends/center/friends/?ppk=1&amp;
         ...             tid=u_0_0&amp;bph=1#friends_center_main">
         ...     </div>''')
-        OrderedDict()
+        GenericResult(content=OrderedDict([('mutual_friends', \
+OrderedDict())]), see_more_links=[])
+
         >>> FacebookSoupParser().parse_mutual_friends_page('''
         ...     <div id="objects_container">
         ...     </div>''')
-        OrderedDict()
+        GenericResult(content=OrderedDict([('mutual_friends', \
+OrderedDict())]), see_more_links=[])
+
         >>> FacebookSoupParser().parse_mutual_friends_page("")
-        OrderedDict()
+
         >>> FacebookSoupParser().parse_mutual_friends_page('''
         ...     <input name="login" type="submit" value="Log In">''')
-        OrderedDict()
         """
 
         soup = BeautifulSoup(content, "lxml")
-
-        mutual_friends_found = OrderedDict()
 
         main_soup = soup.find(id="objects_container")
         if not main_soup:
 
             logging.error(detect_error_type(content))
-            return mutual_friends_found
+            return None
 
+        mutual_friends_found = OrderedDict()
         links_soup = main_soup.find_all(
             "a", attrs={"href": re.compile(r"^/.*\?fref=fr_tab")})
         for link in links_soup:
-            username = link.attrs["href"][1:].split("?fref=fr_tab")[0]
-            mutual_friends_found[username] =\
-                OrderedDict([("name", link.text)])
+            mutual_friends_found[link.attrs["href"][1:]] = link.text
 
-        return mutual_friends_found
+        result = OrderedDict()
+        result["mutual_friends"] = mutual_friends_found
+
+        see_more_links = []
+        div_more = main_soup.find("div", id="m_more_mutual_friends")
+        if div_more:
+            more_link = div_more.find("a")
+            if more_link:
+                see_more_links.append(more_link.attrs["href"])
+
+        return GenericResult(
+            content=result, see_more_links=see_more_links)
 
     def parse_timeline_years_links(self, content):
         """
