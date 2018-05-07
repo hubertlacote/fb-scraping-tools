@@ -51,7 +51,7 @@ def test_fetch_lat_returns_buddy_list():
 
             buddy_list = fb_fetcher.fetch_last_active_times()
 
-            assert buddy_list == fake_buddy_list
+            assert_equal(buddy_list, fake_buddy_list)
 
             mock_fb_parser.parse_buddy_list.assert_called_once_with(
                 "content1")
@@ -70,7 +70,7 @@ def test_fetch_lat_returns_empty_buddy_list_when_downloader_raises():
 
             buddy_list = fb_fetcher.fetch_last_active_times()
 
-            assert len(buddy_list) == 0
+            assert_equal(len(buddy_list), 0)
 
             mock_downloader.fetch_url.assert_called_once_with(
                 cookie=ANY, url=ANY,
@@ -90,7 +90,7 @@ def test_fetch_lat_returns_empty_buddy_list_when_fb_parser_raises():
 
             buddy_list = fb_fetcher.fetch_last_active_times()
 
-            assert len(buddy_list) == 0
+            assert_equal(len(buddy_list), 0)
 
             mock_fb_parser.parse_buddy_list.assert_called_once_with(ANY)
 
@@ -133,9 +133,7 @@ def test_fetch_friend_list_works():
             ]
 
             res = fb_fetcher.fetch_friend_list()
-            print("Expected: {0}".format(expected_friend_list))
-            print("Got     : {0}".format(res))
-            assert res == expected_friend_list
+            assert_equal(res, expected_friend_list)
 
             mock_downloader.fetch_url.assert_called_once_with(
                 url=expected_url,
@@ -175,7 +173,7 @@ def test_fetch_liked_pages_works():
 
             res = fb_fetcher.fetch_liked_pages(111)
 
-            assert res == expected_liked_pages
+            assert_equal(res, expected_liked_pages)
 
             mock_downloader.fetch_url.assert_called_once_with(
                 url=expected_url,
@@ -256,7 +254,7 @@ def test_fetch_content_recursively_stops_when_all_links_explored():
             res = fb_fetcher.fetch_content_recursively(
                 "initialUrl", mock_parse)
 
-            assert res == expected_content
+            assert_equal(res, expected_content)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -328,7 +326,7 @@ def test_fetch_content_recursively_is_resilient_to_downloader_exception():
             res = fb_fetcher.fetch_content_recursively(
                 "initialUrl", mock_parse)
 
-            assert res == expected_content
+            assert_equal(res, expected_content)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -400,7 +398,7 @@ def test_fetch_content_recursively_is_resilient_to_parser_exceptions():
             res = fb_fetcher.fetch_content_recursively(
                 "initialUrl", mock_parse)
 
-            assert res == expected_content
+            assert_equal(res, expected_content)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -473,7 +471,7 @@ def test_fetch_content_recursively_is_resilient_to_parser_error():
             res = fb_fetcher.fetch_content_recursively(
                 "initialUrl", mock_parse)
 
-            assert res == expected_content
+            assert_equal(res, expected_content)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -539,7 +537,7 @@ def test_fetch_user_infos_handles_ids_and_usernames():
 
             res = fb_fetcher.fetch_user_infos(user_ids, False, False)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -686,7 +684,7 @@ def test_fetch_user_infos_can_fetch_likes():
 
             res = fb_fetcher.fetch_user_infos(user_ids, True, False)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -734,7 +732,7 @@ def test_fetch_user_infos_is_resilient_to_downloader_exception():
 
             res = fb_fetcher.fetch_user_infos([110, 111], False, False)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -782,7 +780,7 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_exception():
 
             res = fb_fetcher.fetch_user_infos([110, 111], False, False)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -833,7 +831,7 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_failure():
 
             res = fb_fetcher.fetch_user_infos([110, 111], False, False)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -925,7 +923,7 @@ def test_fetch_articles_from_timelines_visits_all_links():
 
             res = fb_fetcher.fetch_articles_from_timeline(["mark"])
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -986,7 +984,7 @@ def test_fetch_articles_from_timelines_is_resilient_to_fb_parser_failure():
 
             res = fb_fetcher.fetch_articles_from_timeline(["mark"])
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1032,7 +1030,7 @@ def test_fetch_likers_for_article():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1092,7 +1090,7 @@ def test_fetch_likers_for_article_continue_until_no_show_more_links():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1133,7 +1131,7 @@ def test_fetch_likers_for_article_retries_5_times_while_decreasing_max_likes():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1181,7 +1179,7 @@ def test_fetch_likers_for_article_with_success_on_last_retry():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1241,7 +1239,7 @@ def test_fetch_likers_for_article_with_show_more_links_and_failure():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1287,7 +1285,7 @@ def test_fetch_likers_for_article_with_invalid_see_more_link():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1335,7 +1333,7 @@ def test_fetch_likers_for_article_with_parser_exception():
 
             res = fb_fetcher.fetch_likers_for_article(100)
 
-            assert sorted(res) == sorted(expected_likers)
+            assert_equal(sorted(res), sorted(expected_likers))
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1422,7 +1420,7 @@ def test_fetch_reactions_per_user_for_articles():
             res = fb_fetcher.fetch_reactions_per_user_for_articles(
                 input_articles, False)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -1480,7 +1478,7 @@ def test_fetch_reactions_per_user_for_articles_can_exclude_non_users():
             res = fb_fetcher.fetch_reactions_per_user_for_articles(
                 input_articles, True)
 
-            assert res == expected_results
+            assert_equal(res, expected_results)
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
