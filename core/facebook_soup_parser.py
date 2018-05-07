@@ -295,22 +295,27 @@ class FacebookSoupParser:
                 see_more_links=[])
 
         >>> FacebookSoupParser().parse_friends_page('''
-        ...     <div id="friends_center_main">
-        ...         <a href="/privacyx/selector/">
-        ...         <a class="bn" href="/link/?uid=111&amp;foo">Mark</a>
-        ...         <a class="bn" href="/link/?uid=222&amp;bar">Dave</a>
+        ...     <div id="objects_container">
+        ...         <a href="/privacyx/selector/?refid=17">
+        ...         <a href="/user?v=timeline&amp;lst=link">Timeline</a>
+        ...         <a href="/username1?fref=fr_tab&amp;foo">Mark</a>
+        ...         <a href="/profile.php?id=1111&fref=fr_tab">Dave</a>
+        ...         <a>Deleted user shoult not be extracted</a>
         ...         <a href="/friends/center/friends/?ppk=1&amp;
         ...             tid=u_0_0&amp;bph=1#friends_center_main">
-        ...         <a href="/seeMoreLink">
-        ...             <span>See More</span>
-        ...         </a>
+        ...         <div id="m_more_friends">
+        ...             <a href="/seeMoreLink">
+        ...                 <span>See more friends</span>
+        ...             </a>
+        ...         </div>
         ...     </div>''')
-        GenericResult(content=OrderedDict([('friends', \
-OrderedDict([('/link/?uid=111&foo', 'Mark'), \
-('/link/?uid=222&bar', 'Dave')]))]), see_more_links=['/seeMoreLink'])
+        GenericResult(content=OrderedDict([('friends', OrderedDict([\
+('username1?fref=fr_tab&foo', 'Mark'), \
+('profile.php?id=1111&fref=fr_tab', 'Dave')]))]), \
+see_more_links=['/seeMoreLink'])
 
         >>> FacebookSoupParser().parse_friends_page('''
-        ...     <div id="friends_center_main">
+        ...     <div id="objects_container">
         ...         <a href="/privacyx/selector/">
         ...         <a href="/friends/center/friends/?ppk=1&amp;
         ...             tid=u_0_0&amp;bph=1#friends_center_main">
@@ -319,7 +324,7 @@ OrderedDict([('/link/?uid=111&foo', 'Mark'), \
 see_more_links=[])
 
         >>> FacebookSoupParser().parse_friends_page('''
-        ...     <div id="friends_center_main">
+        ...     <div id="objects_container">
         ...     </div>''')
         GenericResult(content=OrderedDict([('friends', OrderedDict())]), \
 see_more_links=[])
@@ -332,28 +337,29 @@ see_more_links=[])
 
         soup = BeautifulSoup(content, "lxml")
 
-        main_soup = soup.find(id="friends_center_main")
+        main_soup = soup.find(id="objects_container")
         if not main_soup:
 
             logging.error(detect_error_type(content))
             return None
 
         friends_found = OrderedDict()
-        see_more_link = None
-        links_soup = main_soup.find_all("a")
+        links_soup = main_soup.find_all(
+            "a",
+            attrs={"href": re.compile(r"^/.*fref=fr_tab")})
         for link in links_soup:
-            if "href" in link.attrs:
-                if "uid=" in link.attrs["href"]:
-                    friends_found[link.attrs["href"]] = \
-                        link.text
-                elif link.text.strip() == "See More":
-                    see_more_link = link.attrs["href"]
+            friends_found[link.attrs["href"][1:]] = \
+                link.text
 
         result = OrderedDict()
         result["friends"] = friends_found
+
         see_more_links = []
-        if see_more_link:
-            see_more_links.append(see_more_link)
+        div_more = main_soup.find("div", id="m_more_friends")
+        if div_more:
+            more_link = div_more.find("a")
+            if more_link:
+                see_more_links.append(more_link.attrs["href"])
 
         return GenericResult(
             content=result, see_more_links=see_more_links)

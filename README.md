@@ -77,21 +77,18 @@ This repository contains a set of basic tools generating JSON. They can be combi
 
 ### Fetching friend list and details about users
 
-- [fetch-friend-list](fetch-friend-list) returns your Facebook friend list (Facebook id + name) extracted from your Friends page:
+- [fetch-friend-list](fetch-friend-list) returns your Facebook friend list (Facebook username + name) extracted from your Friends page:
 
 ```bash
 ./fetch-friend-list > friend-list.json
 # {
-#    "111111111": {
-#        "id": 111111111,
+#    "username1": {
 #        "name": "Friend 1"
 #    },
-#    "222222222": {
-#        "id": 222222222,
+#    "username2": {
 #        "name": "Friend 2"
 #    },
-#    "333333333": {
-#        "id": 333333333,
+#    "username3": {
 #        "name": "Friend 3"
 #    },
 #    ...
@@ -102,11 +99,12 @@ This repository contains a set of basic tools generating JSON. They can be combi
   - 'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday', 'Education', 'Facebook', 'Foursquare', 'Gadu-Gadu', 'Gender', 'ICQ', 'Instagram', 'Interested in', 'Languages', 'LinkedIn', 'Maiden Name', 'Mobile', 'Nickname', 'Political Views', 'Religious views', 'Relationship', 'Skype', 'Snapchat', 'Twitter', 'VK', 'Websites', 'Windows Live Messenger', 'Work', 'Year of birth'.
   - Birthday is treated specially and depending on the information available, only day and month of birth or year of birth are extracted,
   - Only the first work and education listed are extracted,
+  - Also fetches friend list if -f is passed.
   - Also fetches pages liked if -l is passed.
   - Also fetches mutual friends if -m is passed.
 
 ```bash
-./fetch-user-infos -u user -l -m > user-infos.json
+./fetch-user-infos -u user -f -l -m > user-infos.json
 # {
 #     "user": {
 #         "name": "User 1",
@@ -119,6 +117,15 @@ This repository contains a set of basic tools generating JSON. They can be combi
 #         "work": "Workplace",
 #         "education": "Some University",
 #         "relationship": "Married",
+#         "friends": {
+#             "username1": {
+#                 "name": "Friend 1"
+#             },
+#             "username2": {
+#                 "name": "Friend 2"
+#             },
+#             ...
+#         }
 #         "liked_pages": {
 #             "Music": {
 #                 "bandLink/": "Band name",
@@ -170,6 +177,9 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "gender": "Male",
 #        "day_and_month_of_birth": "1 January",
 #        ...
+#        "friends": {
+#            ...
+#        },
 #        "liked_pages": {
 #            ...
 #        },
@@ -185,6 +195,9 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "education": "University name",
 #        "relationship": "In a relationship",
 #        ...
+#        "friends": {
+#            ...
+#        },
 #        "liked_pages": {
 #            ...
 #        },

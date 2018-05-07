@@ -58,6 +58,14 @@ test_denormalize_posts_with_several_users_and_several_posts() {
         "education": "University name",
         "relationship": "In a relationship",
         "work": "Work place",
+        "friends": {
+            "username1": {
+                "name": "Friend 1"
+            },
+            "username2": {
+                "name": "Friend 2"
+            }
+        },
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -101,6 +109,14 @@ test_denormalize_posts_with_several_users_and_several_posts() {
         "education": "University name 2",
         "relationship": "Married",
         "work": "Work place 2",
+        "friends": {
+            "username1": {
+                "name": "Friend 1"
+            },
+            "username2": {
+                "name": "Friend 2"
+            }
+        },
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -420,6 +436,14 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
         "education": "University name",
         "relationship": "In a relationship",
         "work": "Work place",
+        "friends": {
+            "username1": {
+                "name": "Friend 1"
+            },
+            "username2": {
+                "name": "Friend 2"
+            }
+        },
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -463,6 +487,14 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
         "education": "University name 2",
         "relationship": "Married",
         "work": "Work place 2",
+        "friends": {
+            "username1": {
+                "name": "Friend 1"
+            },
+            "username2": {
+                "name": "Friend 2"
+            }
+        },
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -585,6 +617,14 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
         "education": "University name",
         "relationship": "In a relationship",
         "work": "Work place",
+        "friends": {
+            "username1": {
+                "name": "Friend 1"
+            },
+            "username2": {
+                "name": "Friend 2"
+            }
+        },
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -614,6 +654,14 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
         "education": "University name 2",
         "relationship": "Married",
         "work": "Work place 2",
+        "friends": {
+            "username1": {
+                "name": "Friend 1"
+            },
+            "username2": {
+                "name": "Friend 2"
+            }
+        },
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"

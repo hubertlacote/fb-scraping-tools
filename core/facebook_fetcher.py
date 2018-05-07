@@ -28,10 +28,6 @@ def build_buddy_feed_url(user_id):
             format(user_id, "1a2b3c4d")
 
 
-def build_friends_page_url():
-    return "https://mbasic.facebook.com/friends/center/friends"
-
-
 def build_about_page_url_from_id(user_id):
     return "https://mbasic.facebook.com/profile.php?v=info&id={0}". \
         format(user_id)
@@ -40,6 +36,15 @@ def build_about_page_url_from_id(user_id):
 def build_about_page_url_from_username(username):
     return "https://mbasic.facebook.com/{0}/about". \
         format(username)
+
+
+def build_friends_page_from_id(user_id):
+    """
+    >>> build_friends_page_from_id(123)
+    'https://mbasic.facebook.com/profile.php?v=friends&id=123'
+    """
+    return "https://mbasic.facebook.com/profile.php?v=friends&" + \
+           "id={0}".format(user_id)
 
 
 def build_likes_page_from_id(user_id):
@@ -221,10 +226,10 @@ class FacebookFetcher:
 
         return content
 
-    def fetch_friend_list(self):
+    def do_fetch_friends(self, user_id):
 
         content = self.fetch_content_recursively(
-            build_friends_page_url(),
+            build_friends_page_from_id(user_id),
             lambda content: self.fb_parser.parse_friends_page(content))
 
         friend_list = OrderedDict()
@@ -233,21 +238,28 @@ class FacebookFetcher:
             logging.error("Error while fetching friend list")
             return friend_list
 
-        for friend_link in content["friends"]:
-            friend_name = content["friends"][friend_link]
-            uid_found = re.findall(r'uid=\d+', friend_link)
-            if uid_found:
-                user_id = int(uid_found[0].replace("uid=", ""))
-                friend_list[user_id] =\
-                    OrderedDict([("id", user_id), ("name", friend_name)])
+        for username in content["friends"]:
+            friend_name = content["friends"][username]
+            friend_list[username] = {"name": friend_name}
+
+        logging.info("Friends of user '{0}': {1}".format(
+            user_id, common.prettify(friend_list)))
 
         return friend_list
 
-    def fetch_liked_pages(self, user_id):
+    def fetch_user_friend_list(self):
+        return self.do_fetch_friends(self.c_user)
 
-        return self.fetch_content_recursively(
+    def do_fetch_liked_pages(self, user_id):
+
+        result = self.fetch_content_recursively(
             build_likes_page_from_id(user_id),
             lambda content: self.fb_parser.parse_likes_page(content))
+
+        logging.info("Liked pages of user '{0}': {1}".format(
+            user_id, common.prettify(result)))
+
+        return result
 
     def do_fetch_mutual_friends(self, user_id):
 
@@ -272,9 +284,11 @@ class FacebookFetcher:
 
         return mutual_friends
 
-    def fetch_user_infos(self, user_refs, fetch_likes, fetch_mutual_friends):
+    def fetch_user_infos(self, user_refs,
+                         fetch_friends, fetch_likes, fetch_mutual_friends):
         """ Fetch details about some users from their about page.
 
+        fetch_friends: if True, fetch the list of friends.
         fetch_likes: if True, fetch the list of likes from the about page.
         fetch_mutual_friends: if True, fetch the list of mutual friends.
         Only the first page of mutual friends is fetched / parsed.
@@ -312,6 +326,10 @@ class FacebookFetcher:
 
                 logging.info("Got infos for user '{0}' - {1}".format(
                     user_ref, common.prettify(user_infos)))
+
+                if fetch_friends:
+                    user_infos["friends"] = self.do_fetch_friends(
+                        user_infos["id"])
 
                 if fetch_likes:
                     user_infos["liked_pages"] = self.fetch_liked_pages(

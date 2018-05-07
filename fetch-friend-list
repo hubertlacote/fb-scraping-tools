@@ -14,7 +14,7 @@ if __name__ == "__main__":
 
     fb_fetcher = create_production_fetcher(config)
 
-    friend_list = fb_fetcher.fetch_friend_list()
+    friend_list = fb_fetcher.fetch_user_friend_list()
 
     logging.info("Found {0} friend(s)".format(len(friend_list)))
 

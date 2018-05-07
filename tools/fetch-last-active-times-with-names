@@ -1,8 +1,0 @@
-#! /bin/bash
-
-set -u
-set -e
-
-where_am_i="${0%/*}"
-
-${where_am_i}/../fetch-last-active-times | ${where_am_i}/add-user-infos -f - -l

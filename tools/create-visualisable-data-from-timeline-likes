@@ -5,4 +5,4 @@ set -e
 
 where_am_i="${0%/*}"
 
-${where_am_i}/fetch-timeline-likes $@ | ${where_am_i}/add-user-infos -f - -m | ${where_am_i}/denormalize -c -l -f -
+${where_am_i}/fetch-timeline-likes $@ | ${where_am_i}/add-user-infos -i -m | ${where_am_i}/denormalize -c -l -f -

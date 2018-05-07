@@ -95,16 +95,16 @@ def test_fetch_lat_returns_empty_buddy_list_when_fb_parser_raises():
             mock_fb_parser.parse_buddy_list.assert_called_once_with(ANY)
 
 
-def test_fetch_friend_list_works():
+def test_fetch_user_friend_list_works():
 
-    expected_url = "https://mbasic.facebook.com/friends/center/friends"
+    expected_url = "https://mbasic.facebook.com/profile.php?v=friends&id=123"
 
     expected_friend_list = OrderedDict(
         [
-            (111, OrderedDict([('id', 111), ('name', 'Mark')])),
-            (222, OrderedDict([('id', 222), ('name', 'Dave')])),
-            (333, OrderedDict([('id', 333), ('name', 'John')])),
-            (444, OrderedDict([('id', 444), ('name', 'Paul')]))
+            ("username1", {'name': 'Mark'}),
+            ("profile.php?id=2222", {'name': 'Dave'}),
+            ("username3", {'name': 'John'}),
+            ("username4", {'name': 'Paul'})
         ])
 
     with create_mock_downloader() as mock_downloader:
@@ -122,17 +122,17 @@ def test_fetch_friend_list_works():
                     content=OrderedDict([
                         ('friends',
                             OrderedDict([
-                                ('/someLink/?uid=111&foo', 'Mark'),
-                                ('/someLink/?uid=222&foo', 'Dave'),
-                                ('/someLink/?uid=333&foo', 'John'),
-                                ('/someLink/?uid=444&foo', 'Paul')
+                                ('username1?fref=fr_tab&amp;foo', 'Mark'),
+                                ('profile.php?id=2222&fref=fr_tab', 'Dave'),
+                                ('username3?fref=fr_tab&amp;foo', 'John'),
+                                ('username4?fref=fr_tab&amp;foo', 'Paul')
                             ])),
                     ]),
                     see_more_links=[]
                 )
             ]
 
-            res = fb_fetcher.fetch_friend_list()
+            res = fb_fetcher.fetch_user_friend_list()
             assert_equal(res, expected_friend_list)
 
             mock_downloader.fetch_url.assert_called_once_with(
@@ -171,7 +171,7 @@ def test_fetch_liked_pages_works():
                     see_more_links=[]
                 )
 
-            res = fb_fetcher.fetch_liked_pages(111)
+            res = fb_fetcher.do_fetch_liked_pages(111)
 
             assert_equal(res, expected_liked_pages)
 
@@ -535,7 +535,7 @@ def test_fetch_user_infos_handles_ids_and_usernames():
                 fake_infos_user_paul
             ]
 
-            res = fb_fetcher.fetch_user_infos(user_ids, False, False)
+            res = fb_fetcher.fetch_user_infos(user_ids, False, False, False)
 
             assert_equal(res, expected_results)
 
@@ -614,7 +614,7 @@ lst=123:110:1&id=110"
                     see_more_links=[]
                 )
 
-            res = fb_fetcher.fetch_user_infos(user_ids, False, True)
+            res = fb_fetcher.fetch_user_infos(user_ids, False, False, True)
 
             assert_equal(res, expected_results)
 
@@ -682,7 +682,7 @@ def test_fetch_user_infos_can_fetch_likes():
                 )
             ]
 
-            res = fb_fetcher.fetch_user_infos(user_ids, True, False)
+            res = fb_fetcher.fetch_user_infos(user_ids, False, True, False)
 
             assert_equal(res, expected_results)
 
@@ -730,7 +730,7 @@ def test_fetch_user_infos_is_resilient_to_downloader_exception():
             ]
             mock_fb_parser.parse_about_page.return_value = fake_infos_user_111
 
-            res = fb_fetcher.fetch_user_infos([110, 111], False, False)
+            res = fb_fetcher.fetch_user_infos([110, 111], False, False, False)
 
             assert_equal(res, expected_results)
 
@@ -778,7 +778,7 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_exception():
                 fake_infos_user_111
             ]
 
-            res = fb_fetcher.fetch_user_infos([110, 111], False, False)
+            res = fb_fetcher.fetch_user_infos([110, 111], False, False, False)
 
             assert_equal(res, expected_results)
 
@@ -829,7 +829,7 @@ def test_fetch_user_infos_is_resilient_to_fb_parser_failure():
                 fake_infos_user_111
             ]
 
-            res = fb_fetcher.fetch_user_infos([110, 111], False, False)
+            res = fb_fetcher.fetch_user_infos([110, 111], False, False, False)
 
             assert_equal(res, expected_results)
 

@@ -19,4 +19,4 @@ ${where_am_i}/../poll-last-active-times $@ > "${output_file}"
 
 # Any interruption with Ctrl+C (SIGINT) will now exit
 trap cleanup EXIT SIGINT SIGQUIT SIGABRT SIGTERM
-cat "${output_file}" | ${where_am_i}/add-user-infos -f - | ${where_am_i}/denormalize -c -t -f -
+cat "${output_file}" | ${where_am_i}/add-user-infos -i | ${where_am_i}/denormalize -c -t -f -

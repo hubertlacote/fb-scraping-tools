@@ -5,4 +5,4 @@ set -e
 
 where_am_i="${0%/*}"
 
-${where_am_i}/../fetch-timeline-posts $@ | ${where_am_i}/add-user-infos -f - | ${where_am_i}/denormalize -c -p -f -
+${where_am_i}/../fetch-timeline-posts $@ | ${where_am_i}/add-user-infos -i | ${where_am_i}/denormalize -c -p -f -

@@ -18,6 +18,9 @@ if __name__ == "__main__":
         help="Facebook username or user id, e.g. 'zuck' or '4' "
              "for Mark Zuckerberg")
     parser.add_argument(
+        '-f', dest='fetch_friends', action='store_true',
+        help="Fetch also friends (slower)")
+    parser.add_argument(
         '-l', dest='fetch_likes', action='store_true',
         help="Fetch also likes (slower)")
     parser.add_argument(
@@ -53,6 +56,6 @@ if __name__ == "__main__":
         ids.append(args.username)
 
     infos = fb_fetcher.fetch_user_infos(
-        ids, args.fetch_likes, args.fetch_mutual_friends)
+        ids, args.fetch_friends, args.fetch_likes, args.fetch_mutual_friends)
 
     print(common.prettify(infos))
