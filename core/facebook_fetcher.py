@@ -17,6 +17,13 @@ def create_production_fetcher(config):
 
 
 def build_buddy_feed_url(user_id):
+    """
+    >>> build_buddy_feed_url(123)
+    'https://5-edge-chat.facebook.com/pull?channel=p_123&seq=1&\
+partition=-2&clientid=1a2b3c4d&cb=ze0&idle=0&qp=yisq=129169&\
+msgs_recv=0&uid=123&viewer_uid=123&sticky_token=1058&\
+sticky_pool=lla1c22_chat-proxy&state=active'
+    """
     return (
         "https://5-edge-chat.facebook.com/pull?channel=p_{0}&" + \
         # seq = 1 directly gives the full list
@@ -25,15 +32,23 @@ def build_buddy_feed_url(user_id):
         "msgs_recv=0&uid={0}&viewer_uid={0}&sticky_token=1058&" + \
         # Hardcoded client_id, any value seems ok as long as there is one
         "sticky_pool=lla1c22_chat-proxy&state=active"). \
-            format(user_id, "1a2b3c4d")
+        format(user_id, "1a2b3c4d")
 
 
 def build_about_page_url_from_id(user_id):
+    """
+    >>> build_about_page_url_from_id(123)
+    'https://mbasic.facebook.com/profile.php?v=info&id=123'
+    """
     return "https://mbasic.facebook.com/profile.php?v=info&id={0}". \
         format(user_id)
 
 
 def build_about_page_url_from_username(username):
+    """
+    >>> build_about_page_url_from_username("username")
+    'https://mbasic.facebook.com/username/about'
+    """
     return "https://mbasic.facebook.com/{0}/about". \
         format(username)
 
@@ -67,12 +82,20 @@ lst=123:456:1&id=456'
 
 
 def build_timeline_page_url_from_username(username):
+    """
+    >>> build_timeline_page_url_from_username("username")
+    'https://mbasic.facebook.com/username?v=timeline'
+    """
     return "https://mbasic.facebook.com/{0}?v=timeline". \
         format(username)
 
 
 def build_timeline_page_url_from_id(id):
-    return "https://mbasic.facebook.com/profile.php?id={0}&v=timeline&". \
+    """
+    >>> build_timeline_page_url_from_id(123)
+    'https://mbasic.facebook.com/profile.php?id=123&v=timeline'
+    """
+    return "https://mbasic.facebook.com/profile.php?id={0}&v=timeline". \
         format(id)
 
 
@@ -91,6 +114,10 @@ limit={0}&total_count=5000000&ft_ent_identifier=123'
 
 
 def build_relative_url(relative_url):
+    """
+    >>> build_relative_url("/relative")
+    'https://mbasic.facebook.com/relative'
+    """
     return "https://mbasic.facebook.com{0}". \
         format(relative_url)
 
