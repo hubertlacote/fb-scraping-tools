@@ -10,7 +10,7 @@ import logging
 import re
 
 
-LikesResult = namedtuple('LikesResult', ['liked_pages', 'see_more_links'])
+GenericResult = namedtuple('GenericResult', ['content', 'see_more_links'])
 TimelineResult = namedtuple('TimelineResult', ['articles', 'show_more_link'])
 ReactionResult = namedtuple('ReactionResult', ['likers', 'see_more_link'])
 
@@ -348,8 +348,8 @@ class FacebookSoupParser:
     def parse_likes_page(self, content):
         """Extract information from the page showing the likes of a user.
 
-        Returns a LikesResult, containing:
-        - liked_pages: an OrderedDict mapping categories to likes, e.g.:
+        Returns a GenericResult, containing:
+        - content: an OrderedDict mapping categories to likes, e.g.:
         ([('category1', OrderedDict([('link1', 'likeName1'), ...]), ...])
         - see_more_links: all the links that were found on the page to explore.
 
@@ -406,13 +406,13 @@ class FacebookSoupParser:
         ...             </div>
         ...         </div>
         ...     </div>''')
-        LikesResult(liked_pages=OrderedDict([\
-('Music', OrderedDict([('/cat1Link1', 'Item 1-1')])), \
-('Restaurants', OrderedDict([('/cat2Link1', 'Item 2-1')])), \
-('TV Programmes', OrderedDict([('/cat3Link1', 'Item 3-1'), \
-('/cat3Link2', 'Item 3-2')])), \
-('Other', OrderedDict([('/cat4Link1', 'Item 4-1'), \
-('/cat4Link2', 'Item 4-2')]))]), \
+        GenericResult(content=OrderedDict([\
+('Music', OrderedDict([('cat1Link1', 'Item 1-1')])), \
+('Restaurants', OrderedDict([('cat2Link1', 'Item 2-1')])), \
+('TV Programmes', OrderedDict([('cat3Link1', 'Item 3-1'), \
+('cat3Link2', 'Item 3-2')])), \
+('Other', OrderedDict([('cat4Link1', 'Item 4-1'), \
+('cat4Link2', 'Item 4-2')]))]), \
 see_more_links=['/cat1SeeMoreLink', '/cat3SeeMoreLink', '/cat4SeeMoreLink'])
 
         >>> FacebookSoupParser().parse_likes_page('''
@@ -432,15 +432,15 @@ see_more_links=['/cat1SeeMoreLink', '/cat3SeeMoreLink', '/cat4SeeMoreLink'])
         ...         </div>
         ...         </div>
         ...     </div>''')
-        LikesResult(liked_pages=OrderedDict([\
-('Films', OrderedDict([('/cat1Link1', 'Item 1-1'), \
-('/cat1Link2', 'Item 1-2')]))]), \
+        GenericResult(content=OrderedDict([\
+('Films', OrderedDict([('cat1Link1', 'Item 1-1'), \
+('cat1Link2', 'Item 1-2')]))]), \
 see_more_links=[])
 
         >>> FacebookSoupParser().parse_likes_page('''
         ...     <div id="objects_container">
         ...     </div>''')
-        LikesResult(liked_pages=OrderedDict(), see_more_links=[])
+        GenericResult(content=OrderedDict(), see_more_links=[])
 
         >>> FacebookSoupParser().parse_likes_page("")
 
@@ -457,7 +457,7 @@ see_more_links=[])
             return None
 
         see_more_links = []
-        liked_pages = OrderedDict()
+        result = OrderedDict()
 
         main_category = None
         main_category_soup = main_soup.find("h2")
@@ -470,7 +470,7 @@ see_more_links=[])
             if main_category:  # e.g. for Films, category_name is Likes
                 category_name = main_category
 
-            liked_pages[category_name] = OrderedDict()
+            result[category_name] = OrderedDict()
 
             parent_tag = None
             if category.name == "h4":
@@ -478,16 +478,17 @@ see_more_links=[])
             else:
                 parent_tag = category.parent.parent
 
-            link_soup = parent_tag.find_all("a")
+            link_soup = parent_tag.find_all(
+                "a", attrs={"href": re.compile(r"^/.*")})
             for link in link_soup:
                 if link.text.strip() == "See more":
                     see_more_links.append(link.attrs["href"])
                 elif link.text != "Like":
-                    liked_pages[category_name][link.attrs["href"]] = \
+                    result[category_name][link.attrs["href"][1:]] = \
                         link.text.strip()
 
-        return LikesResult(
-            liked_pages=liked_pages, see_more_links=see_more_links)
+        return GenericResult(
+            content=result, see_more_links=see_more_links)
 
     def parse_mutual_friends_page(self, content):
         """Extract information from a mutual friends page.

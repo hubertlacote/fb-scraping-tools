@@ -199,19 +199,18 @@ class FacebookFetcher:
                     "got exception: '{1}'".format(url, e))
                 return friend_list
 
-    def fetch_liked_pages(self, user_id):
+    def fetch_content_recursively(self, initial_url, parsing_function):
 
-        liked_pages = OrderedDict()
+        content = OrderedDict()
 
-        main_likes_page_url = build_likes_page_from_id(user_id)
-        links_to_explore = [main_likes_page_url]
+        links_to_explore = [initial_url]
         links_explored = 0
         while links_to_explore:
 
             url = links_to_explore.pop()
 
             logging.info(
-                "Exploring user likes page {0} - {1} left after, ".format(
+                "Exploring page {0} - {1} left after, ".format(
                     links_explored + 1, len(links_to_explore)) +
                 "url: {0}".format(url))
 
@@ -219,20 +218,19 @@ class FacebookFetcher:
                 response = self.downloader.fetch_url(
                     cookie=self.cookie, url=url,
                     timeout_secs=15, retries=5)
-                likes_results = self.fb_parser.parse_likes_page(
-                    response.text)
+                likes_results = parsing_function(response.text)
                 if likes_results:
-                    logging.info("Found like items: {0}".format(
-                        likes_results.liked_pages))
-                    for category in likes_results.liked_pages:
-                        if category not in liked_pages:
-                            liked_pages[category] = OrderedDict()
-                        processed_liked_pages = OrderedDict()
-                        for link in likes_results.liked_pages[category]:
-                            processed_liked_pages[strip_link_refs(link)] = \
-                                likes_results.liked_pages[category][link]
+                    logging.info("Found items: {0}".format(
+                        likes_results.content))
+                    for category in likes_results.content:
+                        if category not in content:
+                            content[category] = OrderedDict()
+                        processed_content = OrderedDict()
+                        for link in likes_results.content[category]:
+                            processed_content[strip_link_refs(link)] = \
+                                likes_results.content[category][link]
 
-                        liked_pages[category].update(processed_liked_pages)
+                        content[category].update(processed_content)
 
                     if likes_results.see_more_links:
                         logging.info("Found more links to explore: {0}".format(
@@ -248,7 +246,13 @@ class FacebookFetcher:
 
             links_explored += 1
 
-        return liked_pages
+        return content
+
+    def fetch_liked_pages(self, user_id):
+
+        return self.fetch_content_recursively(
+            build_likes_page_from_id(user_id),
+            lambda content: self.fb_parser.parse_likes_page(content))
 
     def fetch_user_infos(self, user_refs, fetch_likes, fetch_mutual_friends):
         """ Fetch details about some users from their about page.

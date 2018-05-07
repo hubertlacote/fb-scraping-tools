@@ -1,12 +1,12 @@
 from core import common
 from core.facebook_fetcher import FacebookFetcher
 from core.facebook_soup_parser import ReactionResult, TimelineResult, \
-    LikesResult
+    GenericResult
 from tests.mocks import create_mock_downloader, create_mock_facebook_parser
 from tests.fakes import create_ok_return_value, create_fake_config
 
 from collections import OrderedDict
-from unittest.mock import call, ANY
+from unittest.mock import call, Mock, ANY
 
 
 def test_fetch_lat_calls_downloader_correctly():
@@ -193,23 +193,63 @@ def test_fetch_friend_list_stops_when_parser_raises():
             ])
 
 
-def test_fetch_liked_pages_stops_when_all_links_explored():
+def test_fetch_liked_pages_works():
+
+    expected_url = \
+        "https://mbasic.facebook.com/profile.php?v=likes&id=111&lst=111:1:1"
+    expected_liked_pages = OrderedDict(
+        [
+            ('Music', OrderedDict([('musicLink1/', 'Music 1')]))
+        ])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            mock_downloader.fetch_url.return_value = \
+                create_ok_return_value("content")
+
+            mock_fb_parser.parse_likes_page.return_value = \
+                GenericResult(
+                    content=OrderedDict([
+                        ('Music',
+                            OrderedDict([('musicLink1/', 'Music 1')])),
+                    ]),
+                    see_more_links=[]
+                )
+
+            res = fb_fetcher.fetch_liked_pages(111)
+
+            assert res == expected_liked_pages
+
+            mock_downloader.fetch_url.assert_called_once_with(
+                url=expected_url,
+                cookie=ANY, timeout_secs=ANY, retries=ANY
+            )
+            mock_fb_parser.parse_likes_page.assert_called_once_with(
+                "content")
+
+
+def test_fetch_content_recursively_stops_when_all_links_explored():
 
     expected_urls = [
-        "https://mbasic.facebook.com/profile.php?v=likes&id=111&lst=111:1:1",
+        "initialUrl",
         "https://mbasic.facebook.com/showMoreLink2",
         "https://mbasic.facebook.com/showMoreLink1"
     ]
 
-    expected_liked_pages = OrderedDict(
+    expected_content = OrderedDict(
         [
-            ('Category 1', OrderedDict([('/cat1Link1/', 'Category 1 - 1')])),
+            ('Category 1', OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
             ('Category 2',
                 OrderedDict([
-                    ('/cat2Link1/', 'Category 2 - 1'),
-                    ('/cat2Link2/', 'Category 2 - 2'),
-                    ('/cat2Link3/', 'Category 2 - 3'),
-                    ('/cat2Link4/', 'Category 2 - 4')
+                    ('cat2Link1/', 'Category 2 - 1'),
+                    ('cat2Link2/', 'Category 2 - 2'),
+                    ('cat2Link3/', 'Category 2 - 3'),
+                    ('cat2Link4/', 'Category 2 - 4')
                 ]))
         ])
 
@@ -225,45 +265,46 @@ def test_fetch_liked_pages_stops_when_all_links_explored():
                 create_ok_return_value("content2"),
                 create_ok_return_value("content3")
             ]
-            mock_fb_parser.parse_likes_page.side_effect = [
-                LikesResult(
-                    liked_pages=OrderedDict([
+            mock_parse = Mock(side_effect=[
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 1',
-                            OrderedDict([('/cat1Link1/', 'Category 1 - 1')])),
+                            OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link1/', 'Category 2 - 1')
+                                ('cat2Link1/', 'Category 2 - 1')
                             ]))
                     ]),
                     see_more_links=[
                         '/showMoreLink1', '/showMoreLink2']
                 ),
-                LikesResult(
-                    liked_pages=OrderedDict([
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link1/?fref=none&refid=17',
+                                ('cat2Link1/?fref=none&refid=17',
                                     'Category 2 - 1'),
-                                ('/cat2Link2/', 'Category 2 - 2'),
-                                ('/cat2Link3/', 'Category 2 - 3')
+                                ('cat2Link2/', 'Category 2 - 2'),
+                                ('cat2Link3/', 'Category 2 - 3')
                             ]))
                     ]),
                     see_more_links=[]
                 ),
-                LikesResult(
-                    liked_pages=OrderedDict([
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link4/', 'Category 2 - 4')
+                                ('cat2Link4/', 'Category 2 - 4')
                             ]))
                     ]),
                     see_more_links=[]
                 )
-            ]
+            ])
 
-            res = fb_fetcher.fetch_liked_pages(111)
+            res = fb_fetcher.fetch_content_recursively(
+                "initialUrl", mock_parse)
 
-            assert res == expected_liked_pages
+            assert res == expected_content
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -271,28 +312,28 @@ def test_fetch_liked_pages_stops_when_all_links_explored():
                     cookie=ANY, timeout_secs=ANY, retries=ANY
                 ) for i in range(0, len(expected_urls))
             ])
-            mock_fb_parser.parse_likes_page.assert_has_calls([
+            mock_parse.assert_has_calls([
                 call("content1"),
                 call("content2"),
                 call("content3")
             ])
 
 
-def test_fetch_liked_pages_is_resilient_to_downloader_exception():
+def test_fetch_content_recursively_is_resilient_to_downloader_exception():
 
     expected_urls = [
-        "https://mbasic.facebook.com/profile.php?v=likes&id=111&lst=111:1:1",
+        "initialUrl",
         "https://mbasic.facebook.com/showMoreLink2",
         "https://mbasic.facebook.com/showMoreLink1"
     ]
 
-    expected_liked_pages = OrderedDict(
+    expected_content = OrderedDict(
         [
-            ('Category 1', OrderedDict([('/cat1Link1/', 'Category 1 - 1')])),
+            ('Category 1', OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
             ('Category 2',
                 OrderedDict([
-                    ('/cat2Link1/', 'Category 2 - 1'),
-                    ('/cat2Link4/', 'Category 2 - 4')
+                    ('cat2Link1/', 'Category 2 - 1'),
+                    ('cat2Link4/', 'Category 2 - 4')
                 ]))
         ])
 
@@ -308,33 +349,34 @@ def test_fetch_liked_pages_is_resilient_to_downloader_exception():
                 RuntimeError("Boom"),
                 create_ok_return_value("content3")
             ]
-            mock_fb_parser.parse_likes_page.side_effect = [
-                LikesResult(
-                    liked_pages=OrderedDict([
+            mock_parse = Mock(side_effect=[
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 1',
-                            OrderedDict([('/cat1Link1/', 'Category 1 - 1')])),
+                            OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link1/', 'Category 2 - 1')
+                                ('cat2Link1/', 'Category 2 - 1')
                             ]))
                     ]),
                     see_more_links=[
                         '/showMoreLink1', '/showMoreLink2']
                 ),
-                LikesResult(
-                    liked_pages=OrderedDict([
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link4/', 'Category 2 - 4')
+                                ('cat2Link4/', 'Category 2 - 4')
                             ]))
                     ]),
                     see_more_links=[]
                 )
-            ]
+            ])
 
-            res = fb_fetcher.fetch_liked_pages(111)
+            res = fb_fetcher.fetch_content_recursively(
+                "initialUrl", mock_parse)
 
-            assert res == expected_liked_pages
+            assert res == expected_content
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -342,27 +384,27 @@ def test_fetch_liked_pages_is_resilient_to_downloader_exception():
                     cookie=ANY, timeout_secs=ANY, retries=ANY
                 ) for i in range(0, len(expected_urls))
             ])
-            mock_fb_parser.parse_likes_page.assert_has_calls([
+            mock_parse.assert_has_calls([
                 call("content1"),
                 call("content3")
             ])
 
 
-def test_fetch_liked_pages_is_resilient_to_parser_exceptions():
+def test_fetch_content_recursively_is_resilient_to_parser_exceptions():
 
     expected_urls = [
-        "https://mbasic.facebook.com/profile.php?v=likes&id=111&lst=111:1:1",
+        "initialUrl",
         "https://mbasic.facebook.com/showMoreLink2",
         "https://mbasic.facebook.com/showMoreLink1"
     ]
 
-    expected_liked_pages = OrderedDict(
+    expected_content = OrderedDict(
         [
-            ('Category 1', OrderedDict([('/cat1Link1/', 'Category 1 - 1')])),
+            ('Category 1', OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
             ('Category 2',
                 OrderedDict([
-                    ('/cat2Link1/', 'Category 2 - 1'),
-                    ('/cat2Link4/', 'Category 2 - 4')
+                    ('cat2Link1/', 'Category 2 - 1'),
+                    ('cat2Link4/', 'Category 2 - 4')
                 ]))
         ])
 
@@ -378,34 +420,35 @@ def test_fetch_liked_pages_is_resilient_to_parser_exceptions():
                 create_ok_return_value("content2"),
                 create_ok_return_value("content3")
             ]
-            mock_fb_parser.parse_likes_page.side_effect = [
-                LikesResult(
-                    liked_pages=OrderedDict([
+            mock_parse = Mock(side_effect=[
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 1',
-                            OrderedDict([('/cat1Link1/', 'Category 1 - 1')])),
+                            OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link1/', 'Category 2 - 1')
+                                ('cat2Link1/', 'Category 2 - 1')
                             ]))
                     ]),
                     see_more_links=[
                         '/showMoreLink1', '/showMoreLink2']
                 ),
                 RuntimeError("Boom"),
-                LikesResult(
-                    liked_pages=OrderedDict([
+                GenericResult(
+                    content=OrderedDict([
                         ('Category 2',
                             OrderedDict([
-                                ('/cat2Link4/', 'Category 2 - 4')
+                                ('cat2Link4/', 'Category 2 - 4')
                             ]))
                     ]),
                     see_more_links=[]
                 )
-            ]
+            ])
 
-            res = fb_fetcher.fetch_liked_pages(111)
+            res = fb_fetcher.fetch_content_recursively(
+                "initialUrl", mock_parse)
 
-            assert res == expected_liked_pages
+            assert res == expected_content
 
             mock_downloader.fetch_url.assert_has_calls([
                 call(
@@ -413,7 +456,80 @@ def test_fetch_liked_pages_is_resilient_to_parser_exceptions():
                     cookie=ANY, timeout_secs=ANY, retries=ANY
                 ) for i in range(0, len(expected_urls))
             ])
-            mock_fb_parser.parse_likes_page.assert_has_calls([
+            mock_parse.assert_has_calls([
+                call("content1"),
+                call("content2"),
+                call("content3")
+            ])
+
+
+def test_fetch_content_recursively_is_resilient_to_parser_error():
+
+    expected_urls = [
+        "initialUrl",
+        "https://mbasic.facebook.com/showMoreLink2",
+        "https://mbasic.facebook.com/showMoreLink1"
+    ]
+
+    expected_content = OrderedDict(
+        [
+            ('Category 1', OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
+            ('Category 2',
+                OrderedDict([
+                    ('cat2Link1/', 'Category 2 - 1'),
+                    ('cat2Link4/', 'Category 2 - 4')
+                ]))
+        ])
+
+    with create_mock_downloader() as mock_downloader:
+
+        with create_mock_facebook_parser() as mock_fb_parser:
+
+            fb_fetcher = FacebookFetcher(
+                mock_downloader, mock_fb_parser, create_fake_config())
+
+            mock_downloader.fetch_url.side_effect = [
+                create_ok_return_value("content1"),
+                create_ok_return_value("content2"),
+                create_ok_return_value("content3")
+            ]
+            mock_parse = Mock(side_effect=[
+                GenericResult(
+                    content=OrderedDict([
+                        ('Category 1',
+                            OrderedDict([('cat1Link1/', 'Category 1 - 1')])),
+                        ('Category 2',
+                            OrderedDict([
+                                ('cat2Link1/', 'Category 2 - 1')
+                            ]))
+                    ]),
+                    see_more_links=[
+                        '/showMoreLink1', '/showMoreLink2']
+                ),
+                None,
+                GenericResult(
+                    content=OrderedDict([
+                        ('Category 2',
+                            OrderedDict([
+                                ('cat2Link4/', 'Category 2 - 4')
+                            ]))
+                    ]),
+                    see_more_links=[]
+                )
+            ])
+
+            res = fb_fetcher.fetch_content_recursively(
+                "initialUrl", mock_parse)
+
+            assert res == expected_content
+
+            mock_downloader.fetch_url.assert_has_calls([
+                call(
+                    url=expected_urls[i],
+                    cookie=ANY, timeout_secs=ANY, retries=ANY
+                ) for i in range(0, len(expected_urls))
+            ])
+            mock_parse.assert_has_calls([
                 call("content1"),
                 call("content2"),
                 call("content3")
@@ -601,8 +717,8 @@ def test_fetch_user_infos_can_fetch_likes():
                 fake_user_infos
             ]
             mock_fb_parser.parse_likes_page.side_effect = [
-                LikesResult(
-                    liked_pages=OrderedDict([
+                GenericResult(
+                    content=OrderedDict([
                         ('Category',
                             OrderedDict([
                                 ('/link/', 'Name')
