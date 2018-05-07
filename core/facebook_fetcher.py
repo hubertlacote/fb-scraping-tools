@@ -28,9 +28,8 @@ def build_buddy_feed_url(user_id):
             format(user_id, "1a2b3c4d")
 
 
-def build_friends_page_url(page_no):
-    return "https://mbasic.facebook.com/friends/center/friends/?ppk={0}". \
-        format(page_no)
+def build_friends_page_url():
+    return "https://mbasic.facebook.com/friends/center/friends"
 
 
 def build_about_page_url_from_id(user_id):
@@ -169,36 +168,6 @@ class FacebookFetcher:
                 "got exception: '{1}'".format(self.buddy_feed_url, e))
             return OrderedDict()
 
-    def fetch_friend_list(self):
-
-        friend_list = {}
-        page_no = 0
-
-        while True:
-
-            url = build_friends_page_url(page_no)
-            try:
-                response = self.downloader.fetch_url(
-                    cookie=self.cookie, url=url, timeout_secs=15, retries=5)
-
-                friends_found = self.fb_parser.parse_friends_page(
-                    response.text)
-                friend_list.update(friends_found)
-                if not friends_found:
-                    logging.info(
-                        "No friends found on page {0}".
-                        format(page_no))
-                    return friend_list
-
-                page_no = page_no + 1
-                logging.info("Found {0} friends".format(len(friends_found)))
-
-            except Exception as e:
-                logging.error(
-                    "Error while downloading page '{0}', "
-                    "got exception: '{1}'".format(url, e))
-                return friend_list
-
     def fetch_content_recursively(self, initial_url, parsing_function):
 
         content = OrderedDict()
@@ -247,6 +216,28 @@ class FacebookFetcher:
             links_explored += 1
 
         return content
+
+    def fetch_friend_list(self):
+
+        content = self.fetch_content_recursively(
+            build_friends_page_url(),
+            lambda content: self.fb_parser.parse_friends_page(content))
+
+        friend_list = OrderedDict()
+
+        if not content or "friends" not in content:
+            logging.error("Error while fetching friend list")
+            return friend_list
+
+        for friend_link in content["friends"]:
+            friend_name = content["friends"][friend_link]
+            uid_found = re.findall(r'uid=\d+', friend_link)
+            if uid_found:
+                user_id = int(uid_found[0].replace("uid=", ""))
+                friend_list[user_id] =\
+                    OrderedDict([("id", user_id), ("name", friend_name)])
+
+        return friend_list
 
     def fetch_liked_pages(self, user_id):
 

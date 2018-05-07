@@ -289,61 +289,74 @@ class FacebookSoupParser:
         JavaScript has to be disabled when fetching the page, otherwise, the
         content returned by requests does not contain the UIDs.
 
-        Returns an OrderedDict([(111, {'id': 111, name': ''}), ...]) mapping
-        user ids to names.
+        Returns a GenericResult(
+            content=OrderedDict([('friends',
+                OrderedDict([('/link1', 'Friend 1'), ...]),
+                see_more_links=[])
 
         >>> FacebookSoupParser().parse_friends_page('''
         ...     <div id="friends_center_main">
         ...         <a href="/privacyx/selector/">
-        ...         <a class="bn" href="/friends/hovercard/mbasic/?
-        ...             uid=111&amp;redirectURI=https%3A%2F%2Fm.facebook.com
-        ...         ">Mark</a>
-        ...         <a class="bn" href="/friends/hovercard/mbasic/?
-        ...             uid=222&amp;redirectURI=https%3A%2F%2Fm.facebook.com
-        ...         ">Dave</a>
+        ...         <a class="bn" href="/link/?uid=111&amp;foo">Mark</a>
+        ...         <a class="bn" href="/link/?uid=222&amp;bar">Dave</a>
         ...         <a href="/friends/center/friends/?ppk=1&amp;
         ...             tid=u_0_0&amp;bph=1#friends_center_main">
+        ...         <a href="/seeMoreLink">
+        ...             <span>See More</span>
+        ...         </a>
         ...     </div>''')
-        OrderedDict([(111, OrderedDict([('id', 111), ('name', 'Mark')])), \
-(222, OrderedDict([('id', 222), ('name', 'Dave')]))])
+        GenericResult(content=OrderedDict([('friends', \
+OrderedDict([('/link/?uid=111&foo', 'Mark'), \
+('/link/?uid=222&bar', 'Dave')]))]), see_more_links=['/seeMoreLink'])
+
         >>> FacebookSoupParser().parse_friends_page('''
         ...     <div id="friends_center_main">
         ...         <a href="/privacyx/selector/">
         ...         <a href="/friends/center/friends/?ppk=1&amp;
         ...             tid=u_0_0&amp;bph=1#friends_center_main">
         ...     </div>''')
-        OrderedDict()
+        GenericResult(content=OrderedDict([('friends', OrderedDict())]), \
+see_more_links=[])
+
         >>> FacebookSoupParser().parse_friends_page('''
         ...     <div id="friends_center_main">
         ...     </div>''')
-        OrderedDict()
+        GenericResult(content=OrderedDict([('friends', OrderedDict())]), \
+see_more_links=[])
+
         >>> FacebookSoupParser().parse_friends_page("")
-        OrderedDict()
+
         >>> FacebookSoupParser().parse_friends_page('''
         ...     <input name="login" type="submit" value="Log In">''')
-        OrderedDict()
         """
 
         soup = BeautifulSoup(content, "lxml")
-
-        friends_found = OrderedDict()
 
         main_soup = soup.find(id="friends_center_main")
         if not main_soup:
 
             logging.error(detect_error_type(content))
-            return friends_found
+            return None
 
+        friends_found = OrderedDict()
+        see_more_link = None
         links_soup = main_soup.find_all("a")
         for link in links_soup:
             if "href" in link.attrs:
-                uid_found = re.findall(r'uid=\d+', link.attrs["href"])
-                if uid_found:
-                    user_id = int(uid_found[0].replace("uid=", ""))
-                    friends_found[user_id] =\
-                        OrderedDict([("id", user_id), ("name", link.text)])
+                if "uid=" in link.attrs["href"]:
+                    friends_found[link.attrs["href"]] = \
+                        link.text
+                elif link.text.strip() == "See More":
+                    see_more_link = link.attrs["href"]
 
-        return friends_found
+        result = OrderedDict()
+        result["friends"] = friends_found
+        see_more_links = []
+        if see_more_link:
+            see_more_links.append(see_more_link)
+
+        return GenericResult(
+            content=result, see_more_links=see_more_links)
 
     def parse_likes_page(self, content):
         """Extract information from the page showing the likes of a user.

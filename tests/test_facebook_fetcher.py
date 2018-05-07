@@ -94,12 +94,16 @@ def test_fetch_lat_returns_empty_buddy_list_when_fb_parser_raises():
             mock_fb_parser.parse_buddy_list.assert_called_once_with(ANY)
 
 
-def test_fetch_friend_list_stops_when_no_friends_returned():
+def test_fetch_friend_list_works():
+
+    expected_url = "https://mbasic.facebook.com/friends/center/friends"
 
     expected_friend_list = OrderedDict(
         [
-            ('111', {'Name': 'Mark'}), ('222', {'Name': 'Dave'}),
-            ('333', {'Name': 'John'}), ('444', {'Name': 'Paul'})
+            (111, OrderedDict([('id', 111), ('name', 'Mark')])),
+            (222, OrderedDict([('id', 222), ('name', 'Dave')])),
+            (333, OrderedDict([('id', 333), ('name', 'John')])),
+            (444, OrderedDict([('id', 444), ('name', 'Paul')]))
         ])
 
     with create_mock_downloader() as mock_downloader:
@@ -110,87 +114,34 @@ def test_fetch_friend_list_stops_when_no_friends_returned():
                 mock_downloader, mock_fb_parser, create_fake_config())
 
             mock_downloader.fetch_url.side_effect = [
-                create_ok_return_value("content1"),
-                create_ok_return_value("content2"),
-                create_ok_return_value("content3")
+                create_ok_return_value("content")
             ]
             mock_fb_parser.parse_friends_page.side_effect = [
-                OrderedDict(
-                    [('111', {'Name': 'Mark'}), ('222', {'Name': 'Dave'})]),
-                OrderedDict(
-                    [('333', {'Name': 'John'}), ('444', {'Name': 'Paul'})]),
-                OrderedDict()
+                GenericResult(
+                    content=OrderedDict([
+                        ('friends',
+                            OrderedDict([
+                                ('/someLink/?uid=111&foo', 'Mark'),
+                                ('/someLink/?uid=222&foo', 'Dave'),
+                                ('/someLink/?uid=333&foo', 'John'),
+                                ('/someLink/?uid=444&foo', 'Paul')
+                            ])),
+                    ]),
+                    see_more_links=[]
+                )
             ]
 
             res = fb_fetcher.fetch_friend_list()
-
+            print("Expected: {0}".format(expected_friend_list))
+            print("Got     : {0}".format(res))
             assert res == expected_friend_list
 
-            mock_fb_parser.parse_friends_page.assert_has_calls([
-                call("content1"),
-                call("content2"),
-                call("content3")
-            ])
-
-
-def test_fetch_friend_list_stops_when_downloader_raises():
-
-    expected_friend_list = OrderedDict(
-        [('111', {'Name': 'Mark'}), ('222', {'Name': 'Dave'})])
-
-    with create_mock_downloader() as mock_downloader:
-
-        with create_mock_facebook_parser() as mock_fb_parser:
-
-            fb_fetcher = FacebookFetcher(
-                mock_downloader, mock_fb_parser, create_fake_config())
-
-            mock_downloader.fetch_url.side_effect = [
-                create_ok_return_value("content1"),
-                RuntimeError()
-            ]
-            mock_fb_parser.parse_friends_page.side_effect = [
-                expected_friend_list,
-                OrderedDict()
-            ]
-
-            res = fb_fetcher.fetch_friend_list()
-
-            assert res == expected_friend_list
-
+            mock_downloader.fetch_url.assert_called_once_with(
+                url=expected_url,
+                cookie=ANY, timeout_secs=ANY, retries=ANY
+            )
             mock_fb_parser.parse_friends_page.assert_called_once_with(
-                "content1")
-
-
-def test_fetch_friend_list_stops_when_parser_raises():
-
-    expected_friend_list = OrderedDict(
-        [('111', {'Name': 'Mark'}), ('222', {'Name': 'Dave'})])
-
-    with create_mock_downloader() as mock_downloader:
-
-        with create_mock_facebook_parser() as mock_fb_parser:
-
-            fb_fetcher = FacebookFetcher(
-                mock_downloader, mock_fb_parser, create_fake_config())
-
-            mock_downloader.fetch_url.side_effect = [
-                create_ok_return_value("content1"),
-                create_ok_return_value("content2"),
-            ]
-            mock_fb_parser.parse_friends_page.side_effect = [
-                expected_friend_list,
-                RuntimeError("")
-            ]
-
-            res = fb_fetcher.fetch_friend_list()
-
-            assert res == expected_friend_list
-
-            mock_fb_parser.parse_friends_page.assert_has_calls([
-                call("content1"),
-                call("content2")
-            ])
+                "content")
 
 
 def test_fetch_liked_pages_works():
