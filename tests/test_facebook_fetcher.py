@@ -146,7 +146,7 @@ def test_fetch_friend_list_works():
 def test_fetch_liked_pages_works():
 
     expected_url = \
-        "https://mbasic.facebook.com/profile.php?v=likes&id=111&lst=111:1:1"
+        "https://mbasic.facebook.com/profile.php?v=likes&id=111"
     expected_liked_pages = OrderedDict(
         [
             ('Music', OrderedDict([('musicLink1/', 'Music 1')]))
@@ -639,7 +639,7 @@ def test_fetch_user_infos_can_fetch_likes():
     expected_about_page_url = \
         "https://mbasic.facebook.com/profile.php?v=info&id=110"
     expected_likes_url = \
-        "https://mbasic.facebook.com/profile.php?v=likes&id=110&lst=110:1:1"
+        "https://mbasic.facebook.com/profile.php?v=likes&id=110"
 
     fake_user_infos = OrderedDict(
         [('id', 110), ('Name', 'Mark')])

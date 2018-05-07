@@ -43,8 +43,12 @@ def build_about_page_url_from_username(username):
 
 
 def build_likes_page_from_id(user_id):
+    """
+    >>> build_likes_page_from_id(123)
+    'https://mbasic.facebook.com/profile.php?v=likes&id=123'
+    """
     return "https://mbasic.facebook.com/profile.php?v=likes&" + \
-           "id={0}&lst={0}:1:1".format(user_id)
+           "id={0}".format(user_id)
 
 
 def build_mutual_friends_page_url_from_id(c_user, user_id):
