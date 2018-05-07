@@ -330,14 +330,22 @@ class FacebookFetcher:
                 if fetch_friends:
                     user_infos["friends"] = self.do_fetch_friends(
                         user_infos["id"])
+                    user_infos["friend_count"] = len(user_infos["friends"])
 
                 if fetch_likes:
-                    user_infos["liked_pages"] = self.fetch_liked_pages(
+                    liked_pages = self.do_fetch_liked_pages(
                         user_infos["id"])
+                    liked_page_count = 0
+                    for category in liked_pages:
+                        liked_page_count += len(liked_pages[category])
+                    user_infos["liked_pages"] = liked_pages
+                    user_infos["liked_page_count"] = liked_page_count
 
                 if fetch_mutual_friends:
                     user_infos["mutual_friends"] = \
                         self.do_fetch_mutual_friends(user_infos["id"])
+                    user_infos["mutual_friend_count"] = \
+                        len(user_infos["mutual_friends"])
 
                 infos[user_ref] = user_infos
 

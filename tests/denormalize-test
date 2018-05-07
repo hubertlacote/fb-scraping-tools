@@ -66,6 +66,7 @@ test_denormalize_posts_with_several_users_and_several_posts() {
                 "name": "Friend 2"
             }
         },
+        "friend_count": 2,
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -74,6 +75,7 @@ test_denormalize_posts_with_several_users_and_several_posts() {
                 "filmLink/": "Film name"
             }
         },
+        "liked_page_count": 2,
         "mutual_friends": {
             "mutualfriend1": {
                 "name": "Mutual Friend 1"
@@ -82,6 +84,7 @@ test_denormalize_posts_with_several_users_and_several_posts() {
                 "name": "Mutual Friend 2"
             }
         },
+        "mutual_friend_count": 2,
         "posts": {
             "123456789000000001": {
                 "post_id": 123456789000000001,
@@ -117,6 +120,7 @@ test_denormalize_posts_with_several_users_and_several_posts() {
                 "name": "Friend 2"
             }
         },
+        "friend_count": 2,
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -125,6 +129,7 @@ test_denormalize_posts_with_several_users_and_several_posts() {
                 "filmLink/": "Film name"
             }
         },
+        "liked_page_count": 2,
         "mutual_friends": {
             "mutualfriend3": {
                 "name": "Mutual Friend 3"
@@ -133,6 +138,7 @@ test_denormalize_posts_with_several_users_and_several_posts() {
                 "name": "Mutual Friend 1"
             }
         },
+        "mutual_friend_count": 2,
         "posts": {
             "456789123000000001": {
                 "post_id": 456789123000000001,
@@ -444,6 +450,7 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
                 "name": "Friend 2"
             }
         },
+        "friend_count": 2,
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -452,6 +459,7 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
                 "filmLink/": "Film name"
             }
         },
+        "liked_page_count": 2,
         "mutual_friends": {
             "mutualfriend1": {
                 "name": "Mutual Friend 1"
@@ -460,6 +468,7 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
                 "name": "Mutual Friend 2"
             }
         },
+        "mutual_friend_count": 2,
         "likes":[
           {
             "post_id": 1111111111111111,
@@ -495,6 +504,7 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
                 "name": "Friend 2"
             }
         },
+        "friend_count": 2,
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -503,6 +513,7 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
                 "filmLink/": "Film name"
             }
         },
+        "liked_page_count": 2,
         "mutual_friends": {
             "mutualfriend3": {
                 "name": "Mutual Friend 3"
@@ -511,6 +522,7 @@ test_denormalize_likes_with_several_likers_and_several_likes() {
                 "name": "Mutual Friend 1"
             }
         },
+        "mutual_friend_count": 2,
         "likes":[
           {
             "post_id": 1111111111111113,
@@ -625,6 +637,7 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
                 "name": "Friend 2"
             }
         },
+        "friend_count": 2,
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -633,6 +646,7 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
                 "filmLink/": "Film name"
             }
         },
+        "liked_page_count": 2,
         "mutual_friends": {
             "mutualfriend1": {
                 "name": "Mutual Friend 1"
@@ -641,6 +655,7 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
                 "name": "Mutual Friend 2"
             }
         },
+        "mutual_friend_count": 2,
         "times":[
           "2018-04-24 19:01:02",
           "2018-04-24 19:02:03"
@@ -662,6 +677,7 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
                 "name": "Friend 2"
             }
         },
+        "friend_count": 2,
         "liked_pages": {
             "Music": {
                 "bandLink/": "Band name"
@@ -670,6 +686,7 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
                 "filmLink/": "Film name"
             }
         },
+        "liked_page_count": 2,
         "mutual_friends": {
             "mutualfriend1": {
                 "name": "Mutual Friend 1"
@@ -678,6 +695,7 @@ test_denormalize_last_active_times_with_several_users_and_several_times() {
                 "name": "Mutual Friend 2"
             }
         },
+        "mutual_friend_count": 2,
         "times":[
           "2018-04-25 20:01:02"
         ]

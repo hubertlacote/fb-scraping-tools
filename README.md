@@ -125,7 +125,8 @@ This repository contains a set of basic tools generating JSON. They can be combi
 #                 "name": "Friend 2"
 #             },
 #             ...
-#         }
+#         },
+#         "friend_count": 200,
 #         "liked_pages": {
 #             "Music": {
 #                 "bandLink/": "Band name",
@@ -137,6 +138,7 @@ This repository contains a set of basic tools generating JSON. They can be combi
 #             },
 #             ...
 #         },
+#         "liked_page_count": 200,
 #         "mutual_friends": {
 #             "username1": {
 #                 "name": "Mutual friend 1"
@@ -145,7 +147,8 @@ This repository contains a set of basic tools generating JSON. They can be combi
 #                 "name": "Mutual friend 2"
 #             },
 #             ...
-#         }
+#         },
+#         "mutual_friend_count": 10
 #     }
 # }
 
@@ -180,12 +183,15 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "friends": {
 #            ...
 #        },
+#        "friend_count": 200,
 #        "liked_pages": {
 #            ...
 #        },
+#        "liked_page_count": 200,
 #        "mutual_friends": {
 #            ...
 #        },
+#        "mutual_friend_count": 10
 #    },
 #    "222222222": {
 #        "name": "Friend 2",
@@ -198,12 +204,15 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "friends": {
 #            ...
 #        },
+#        "friend_count": 200,
 #        "liked_pages": {
 #            ...
 #        },
+#        "liked_page_count": 200,
 #        "mutual_friends": {
 #            ...
 #        },
+#        "mutual_friend_count": 10
 #    },
 #  }
 ```
