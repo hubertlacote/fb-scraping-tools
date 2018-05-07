@@ -102,10 +102,11 @@ This repository contains a set of basic tools generating JSON. They can be combi
   - 'AIM', 'Address', 'BBM', 'Birth Name', 'Birthday', 'Education', 'Facebook', 'Foursquare', 'Gadu-Gadu', 'Gender', 'ICQ', 'Instagram', 'Interested in', 'Languages', 'LinkedIn', 'Maiden Name', 'Mobile', 'Nickname', 'Political Views', 'Religious views', 'Relationship', 'Skype', 'Snapchat', 'Twitter', 'VK', 'Websites', 'Windows Live Messenger', 'Work', 'Year of birth'.
   - Birthday is treated specially and depending on the information available, only day and month of birth or year of birth are extracted,
   - Only the first work and education listed are extracted,
+  - Also fetches pages liked if -l is passed.
   - Also fetches mutual friends if -m is passed.
 
 ```bash
-./fetch-user-infos -u user -m > user-infos.json
+./fetch-user-infos -u user -l -m > user-infos.json
 # {
 #     "user": {
 #         "name": "User 1",
@@ -117,7 +118,18 @@ This repository contains a set of basic tools generating JSON. They can be combi
 #         "year_of_birth": 1984,
 #         "work": "Workplace",
 #         "education": "Some University",
-#         "relationship": "Married"
+#         "relationship": "Married",
+#         "liked_pages": {
+#             "Music": {
+#                 "bandLink/": "Band name",
+#                 ...
+#             },
+#             "Television": {
+#                 "filmLink/": "Film name",
+#                 ...
+#             },
+#             ...
+#         },
 #         "mutual_friends": {
 #             "username1": {
 #                 "name": "Mutual friend 1"
@@ -158,9 +170,12 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "gender": "Male",
 #        "day_and_month_of_birth": "1 January",
 #        ...
+#        "liked_pages": {
+#            ...
+#        },
 #        "mutual_friends": {
 #            ...
-#        }
+#        },
 #    },
 #    "222222222": {
 #        "name": "Friend 2",
@@ -170,9 +185,12 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "education": "University name",
 #        "relationship": "In a relationship",
 #        ...
+#        "liked_pages": {
+#            ...
+#        },
 #        "mutual_friends": {
 #            ...
-#        }
+#        },
 #    },
 #  }
 ```

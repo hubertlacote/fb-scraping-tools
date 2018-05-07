@@ -10,6 +10,7 @@ import logging
 import re
 
 
+LikesResult = namedtuple('LikesResult', ['liked_pages', 'see_more_links'])
 TimelineResult = namedtuple('TimelineResult', ['articles', 'show_more_link'])
 ReactionResult = namedtuple('ReactionResult', ['likers', 'see_more_link'])
 
@@ -343,6 +344,150 @@ class FacebookSoupParser:
                         OrderedDict([("id", user_id), ("name", link.text)])
 
         return friends_found
+
+    def parse_likes_page(self, content):
+        """Extract information from the page showing the likes of a user.
+
+        Returns a LikesResult, containing:
+        - liked_pages: an OrderedDict mapping categories to likes, e.g.:
+        ([('category1', OrderedDict([('link1', 'likeName1'), ...]), ...])
+        - see_more_links: all the links that were found on the page to explore.
+
+        >>> FacebookSoupParser().parse_likes_page('''
+        ...     <div id="objects_container">
+        ...         <div>
+        ...             <h4>Music </h4>
+        ...             <div><img src="cat1ImgUrl1"><div>
+        ...                 <a href="/cat1Link1"><span>Item 1-1</span></a><br>
+        ...                 <a href="/cat1BadLink1">Like</a>
+        ...             </div></div>
+        ...             <div id="m_more_item">
+        ...                 <a href="/cat1SeeMoreLink">
+        ...                 <span>See more</span></a>
+        ...             </div>
+        ...         </div>
+        ...         <div>
+        ...             <h4>Restaurants </h4>
+        ...             <div><img src="cat2ImgUrl1"><div>
+        ...                 <a href="/cat2Link1">
+        ...                     <span>Item 2-1</span>
+        ...                 </a><br>
+        ...                 <a href="/cat2BadLink1">Like</a>
+        ...             </div></div>
+        ...         </div>
+        ...         <div>
+        ...             <div><h3>TV Programmes</h3></div>
+        ...             <div><img src="cat3ImgUrl1"><div>
+        ...                 <a href="/cat3Link1"><span>Item 3-1</span></a><br>
+        ...                 <a href="/cat3BadLink1">Like</a>
+        ...             </div></div>
+        ...             <div><img src="cat3ImgUrl2"><div>
+        ...                 <a href="/cat3Link2"><span>Item 3-2</span></a><br>
+        ...                 <a href="/cat3BadLink2">Like</a>
+        ...             </div></div>
+        ...             <div id="m_more_item">
+        ...                 <a href="/cat3SeeMoreLink">
+        ...                 <span>See more</span></a>
+        ...             </div>
+        ...         </div>
+        ...         <div>
+        ...             <h4>Other </h4>
+        ...             <div><img src="cat4ImgUrl1"><div>
+        ...                 <a href="/cat4Link1"><span>Item 4-1</span></a><br>
+        ...                 <a href="/cat4BadLink1">Like</a>
+        ...             </div></div>
+        ...             <div><img src="cat4ImgUrl2"><div>
+        ...                 <a href="/cat4Link2"><span>Item 4-2</span></a><br>
+        ...                 <a href="/cat4BadLink2">Like</a>
+        ...             </div></div>
+        ...             <div id="m_more_item">
+        ...                 <a href="/cat4SeeMoreLink">
+        ...                 <span>See more</span></a>
+        ...             </div>
+        ...         </div>
+        ...     </div>''')
+        LikesResult(liked_pages=OrderedDict([\
+('Music', OrderedDict([('/cat1Link1', 'Item 1-1')])), \
+('Restaurants', OrderedDict([('/cat2Link1', 'Item 2-1')])), \
+('TV Programmes', OrderedDict([('/cat3Link1', 'Item 3-1'), \
+('/cat3Link2', 'Item 3-2')])), \
+('Other', OrderedDict([('/cat4Link1', 'Item 4-1'), \
+('/cat4Link2', 'Item 4-2')]))]), \
+see_more_links=['/cat1SeeMoreLink', '/cat3SeeMoreLink', '/cat4SeeMoreLink'])
+
+        >>> FacebookSoupParser().parse_likes_page('''
+        ...     <div id="objects_container">
+        ...         <div title="Films"><h2>Films</h2></div>
+        ...         <div id="root" role="main"><div id="timelineBody"">
+        ...         <div>
+        ...             <h4>Likes </h4>
+        ...             <div><img src="cat1ImgUrl1"><div>
+        ...                 <a href="/cat1Link1"><span>Item 1-1</span></a><br>
+        ...                 <a href="/cat1BadLink1">Like</a>
+        ...             </div></div>
+        ...             <div><img src="cat1ImgUrl2"><div>
+        ...                 <a href="/cat1Link2"><span>Item 1-2</span></a><br>
+        ...                 <a href="/cat1BadLink2">Like</a>
+        ...             </div></div>
+        ...         </div>
+        ...         </div>
+        ...     </div>''')
+        LikesResult(liked_pages=OrderedDict([\
+('Films', OrderedDict([('/cat1Link1', 'Item 1-1'), \
+('/cat1Link2', 'Item 1-2')]))]), \
+see_more_links=[])
+
+        >>> FacebookSoupParser().parse_likes_page('''
+        ...     <div id="objects_container">
+        ...     </div>''')
+        LikesResult(liked_pages=OrderedDict(), see_more_links=[])
+
+        >>> FacebookSoupParser().parse_likes_page("")
+
+        >>> FacebookSoupParser().parse_likes_page('''
+        ...     <input name="login" type="submit" value="Log In">''')
+        """
+
+        soup = BeautifulSoup(content, "lxml")
+
+        main_soup = soup.find(id="objects_container")
+        if not main_soup:
+
+            logging.error(detect_error_type(content))
+            return None
+
+        see_more_links = []
+        liked_pages = OrderedDict()
+
+        main_category = None
+        main_category_soup = main_soup.find("h2")
+        if main_category_soup:
+            main_category = main_category_soup.text
+
+        category_soup = main_soup.find_all(re.compile("^h[34]$"))
+        for category in category_soup:
+            category_name = category.text.strip()
+            if main_category:  # e.g. for Films, category_name is Likes
+                category_name = main_category
+
+            liked_pages[category_name] = OrderedDict()
+
+            parent_tag = None
+            if category.name == "h4":
+                parent_tag = category.parent
+            else:
+                parent_tag = category.parent.parent
+
+            link_soup = parent_tag.find_all("a")
+            for link in link_soup:
+                if link.text.strip() == "See more":
+                    see_more_links.append(link.attrs["href"])
+                elif link.text != "Like":
+                    liked_pages[category_name][link.attrs["href"]] = \
+                        link.text.strip()
+
+        return LikesResult(
+            liked_pages=liked_pages, see_more_links=see_more_links)
 
     def parse_mutual_friends_page(self, content):
         """Extract information from a mutual friends page.

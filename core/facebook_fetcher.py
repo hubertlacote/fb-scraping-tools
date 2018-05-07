@@ -43,6 +43,11 @@ def build_about_page_url_from_username(username):
         format(username)
 
 
+def build_likes_page_from_id(user_id):
+    return "https://mbasic.facebook.com/profile.php?v=likes&" + \
+           "id={0}&lst={0}:1:1".format(user_id)
+
+
 def build_mutual_friends_page_url_from_id(c_user, user_id):
     """
     >>> build_mutual_friends_page_url_from_id(123, 456)
@@ -95,6 +100,24 @@ def get_user_id(user_ref):
         return int(str(user_ref).replace("profile.php?id=", ""))
     else:
         return None
+
+
+def strip_link_refs(link):
+    """
+    >>> strip_link_refs("/profile.php?id=1234&fref=none&refid=17")
+    '/profile.php?id=1234'
+    >>> strip_link_refs("/SomeGroup/?refid=17")
+    '/SomeGroup/'
+    >>> strip_link_refs("/some.page/?fref=none&refid=17")
+    '/some.page/'
+    >>> strip_link_refs("/neilstrauss/?fref=none")
+    '/neilstrauss/'
+    """
+    link = link.split("&fref")[0]
+    link = link.split("?fref")[0]
+    link = link.split("?refid")[0]
+    link = link.split("&refid")[0]
+    return link
 
 
 def is_user(username):
@@ -176,9 +199,61 @@ class FacebookFetcher:
                     "got exception: '{1}'".format(url, e))
                 return friend_list
 
-    def fetch_user_infos(self, user_refs, fetch_mutual_friends):
+    def fetch_liked_pages(self, user_id):
+
+        liked_pages = OrderedDict()
+
+        main_likes_page_url = build_likes_page_from_id(user_id)
+        links_to_explore = [main_likes_page_url]
+        links_explored = 0
+        while links_to_explore:
+
+            url = links_to_explore.pop()
+
+            logging.info(
+                "Exploring user likes page {0} - {1} left after, ".format(
+                    links_explored + 1, len(links_to_explore)) +
+                "url: {0}".format(url))
+
+            try:
+                response = self.downloader.fetch_url(
+                    cookie=self.cookie, url=url,
+                    timeout_secs=15, retries=5)
+                likes_results = self.fb_parser.parse_likes_page(
+                    response.text)
+                if likes_results:
+                    logging.info("Found like items: {0}".format(
+                        likes_results.liked_pages))
+                    for category in likes_results.liked_pages:
+                        if category not in liked_pages:
+                            liked_pages[category] = OrderedDict()
+                        processed_liked_pages = OrderedDict()
+                        for link in likes_results.liked_pages[category]:
+                            processed_liked_pages[strip_link_refs(link)] = \
+                                likes_results.liked_pages[category][link]
+
+                        liked_pages[category].update(processed_liked_pages)
+
+                    if likes_results.see_more_links:
+                        logging.info("Found more links to explore: {0}".format(
+                            likes_results.see_more_links))
+                        links_to_explore.extend(
+                            [build_relative_url(link)
+                                for link in likes_results.see_more_links])
+
+            except Exception as e:
+                logging.error(
+                    "Error while downloading page '{0}', "
+                    "got exception: '{1}'".format(url, e))
+
+            links_explored += 1
+
+        return liked_pages
+
+    def fetch_user_infos(self, user_refs, fetch_likes, fetch_mutual_friends):
         """ Fetch details about some users from their about page.
 
+        fetch_likes: if True, fetch the list of likes from the about page.
         fetch_mutual_friends: if True, fetch the list of mutual friends.
         Only the first page of mutual friends is fetched / parsed.
         Adding "&startindex=36" to the url would return the next 35 friends
@@ -215,6 +290,10 @@ class FacebookFetcher:
 
                 logging.info("Got infos for user '{0}' - {1}".format(
                     user_ref, common.prettify(user_infos)))
+
+                if fetch_likes:
+                    user_infos["liked_pages"] = self.fetch_liked_pages(
+                        user_infos["id"])
 
                 if fetch_mutual_friends:
                     mutual_friends_url = \
