@@ -1,6 +1,6 @@
 # fb-scraping-tools
 
-**A unit tested set of tools written in Python to scrape / collect data from Facebook.**
+**A unit tested set of tools written in Python to scrape / collect data visible by a logged in user from Facebook.**
 
 ## Why ([![start with why](https://img.shields.io/badge/start%20with-why%3F-brightgreen.svg?style=flat)](http://www.ted.com/talks/simon_sinek_how_great_leaders_inspire_action))
 
@@ -9,7 +9,7 @@ To learn how to scrape non-interactive websites (with javascript disabled) using
 To extract data not available easily via Facebook, e.g.:
 
 - Find the most popular posts of any page, can be done with [fetch-timeline-posts](fetch-timeline-posts),
-- Find the birthday dates of all your friends who make it available via Facebook, can be done with [tools/fetch-friend-list-with-details](tools/fetch-friend-list-with-details) and for the one that hid their birthday dates after a few years of using Facebook, it can often still be deduced by checking when users posted on their timelines using [fetch-timeline-posts](fetch-timeline-posts).
+- Find the birthday dates of all your friends who make it available via Facebook, can be done with [tools/fetch-friend-list-with-details](tools/fetch-friend-list-with-details) and for the one that hid their birthday dates after a few years of using Facebook, it can still be deduced by looking for messages posted on their timeline using [fetch-timeline-posts](fetch-timeline-posts).
 
 To check the potential privacy implications that modern social media have, e.g.:
 
@@ -229,6 +229,7 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        "posts": {
 #            "100000000000001": {
 #                "post_id": 100000000000001,
+#                "content": "User added a new photo",
 #                "date": "2018-01-01 12:00:00",
 #                "date_org": "1 January at 12:00",
 #                "like_count": 3100,
@@ -238,6 +239,7 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #            },
 #            "100000000000002": {
 #                "post_id": 100000000000002,
+#                "content": "User is with some other user",
 #                "date": "2018-01-02 12:00:00",
 #                "date_org": "2 January at 12:00",
 #                "like_count": 0,

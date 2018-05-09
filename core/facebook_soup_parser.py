@@ -639,44 +639,66 @@ OrderedDict())]), see_more_links=[])
         """
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
-        ...         <abbr>13 May 2008 at 10:02</abbr>
-        ...         <span id="like_151">
-        ...             <a aria-label="10 reactions, including Like and \
+        ...         <div>
+        ...             Some text
+        ...         </div>
+        ...         <div>
+        ...             Some more text
+        ...         </div>
+        ...         <div data-ft="foo">
+        ...             <abbr>13 May 2008 at 10:02</abbr>
+        ...             <span id="like_151">
+        ...                 <a aria-label="10 reactions, including Like and \
 Love" href="/link1">10</a>
-        ...             <a href="/link2">React</a>
-        ...         </span>
-        ...         <a href="/link3">12 Comments</a>
-        ...         <a href="/fullStoryLink">Full Story</a>
+        ...                 <a href="/link2">React</a>
+        ...             </span>
+        ...             <a href="/link3">12 Comments</a>
+        ...             <a href="/fullStoryLink">Full Story</a>
+        ...         </div>
         ...     </div>''', 'lxml'))
-        OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+        OrderedDict([('post_id', 151), \
+('content', 'Some text - Some more text'), \
+('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 10), \
 ('comment_count', 12), \
 ('story_link', 'https://mbasic.facebook.com/fullStoryLink')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
-        ...         <abbr>13 May 2008 at 10:02</abbr>
-        ...         <span id="like_151">
-        ...             <a aria-label="114K reactions, including Like, Love \
-and Wow" href="/link1">114,721</a>
-        ...             <a href="/link2">React</a>
-        ...         </span>
-        ...         <a href="/link3">2,746 Comments</a>
+        ...         <div>
+        ...             Some text
+        ...         </div>
+        ...         <div data-ft="foo">
+        ...             <abbr>13 May 2008 at 10:02</abbr>
+        ...             <span id="like_151">
+        ...                 <a aria-label="114K reactions, including \
+Like, Love and Wow" href="/link1">114,721</a>
+        ...                 <a href="/link2">React</a>
+        ...             </span>
+        ...             <a href="/link3">2,746 Comments</a>
+        ...         </div>
         ...     </div>''', 'lxml'))
-        OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+        OrderedDict([('post_id', 151), ('content', 'Some text'), \
+('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 114721), \
 ('comment_count', 2746), ('story_link', '')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
-        ...         <abbr>14 May 2008 at 10:02</abbr>
-        ...         <span id="like_152">
-        ...             <a href="/link1">Like</a>
-        ...             <a href="/link2">React</a>
-        ...         </span>
-        ...         <a href="/link3">Comment</a>
+        ...         <div>
+        ...             Some text
+        ...         </div>
+        ...         <div data-ft="foo">
+        ...             <abbr>14 May 2008 at 10:02</abbr>
+        ...             <span id="like_152">
+        ...                 <a href="/link1">Like</a>
+        ...                 <a href="/link2">React</a>
+        ...             </span>
+        ...             <a href="/link3">Comment</a>
+        ...         </div>
         ...     </div>''', 'lxml'))
-        OrderedDict([('post_id', 152), ('date', '2008-05-14 10:02:00'), \
+        OrderedDict([('post_id', 152), ('content', 'Some text'), \
+('date', '2008-05-14 10:02:00'), \
 ('date_org', '14 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')])
 
@@ -686,9 +708,23 @@ and Wow" href="/link1">114,721</a>
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
-        ...         <abbr>14 May 2008 at 10:02</abbr>
+        ...         <div data-ft="foo">
+        ...             <abbr>14 May 2008 at 10:02</abbr>
+        ...         </div>
         ...     </div>''', 'lxml'))
         """
+
+        if soup.name != "div":  # doctests only: remove generated 'html' tag
+            soup = soup.div
+
+        content = []
+        for child in soup.children:
+            if hasattr(child, 'attrs'):
+                if "data-ft" in child.attrs:
+                    break
+                content.append("".join(child.strings).strip())
+        content_string = " - ".join(content)
+
         date_tag = soup.find("abbr")
         if not date_tag:
             logging.info("Skipping original article shared.")
@@ -720,7 +756,8 @@ and Wow" href="/link1">114,721</a>
             full_story_link = build_relative_url(full_story_soup.attrs["href"])
 
         return OrderedDict([
-            ("post_id", article_id), ("date", date), ("date_org", date_org),
+            ("post_id", article_id), ("content", content_string),
+            ("date", date), ("date_org", date_org),
             ("like_count", like_count), ("comment_count", comment_count),
             ("story_link", full_story_link)])
 
@@ -729,22 +766,28 @@ and Wow" href="/link1">114,721</a>
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="tlFeed">
         ...         <div role="article">
-        ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_151"></span>
+        ...             <div data-ft="foo">
+        ...                 <abbr>13 May 2008 at 10:02</abbr>
+        ...                 <span id="like_151"></span>
+        ...             </div>
         ...         </div>
         ...         <div role="article">
-        ...             <abbr>13 May 2008 at 10:25</abbr>
-        ...             <span id="like_152"></span>
+        ...             <div data-ft="foo">
+        ...                 <abbr>13 May 2008 at 10:25</abbr>
+        ...                 <span id="like_152"></span>
+        ...             </div>
         ...         </div>
         ...         <div>
         ...             <a href="/show_more_link">Show more</a>
         ...         </div>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
-(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+(151, OrderedDict([('post_id', 151), ('content', ''), \
+('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')])), \
-(152, OrderedDict([('post_id', 152), ('date', '2008-05-13 10:25:00'), \
+(152, OrderedDict([('post_id', 152), ('content', ''), \
+('date', '2008-05-13 10:25:00'), \
 ('date_org', '13 May 2008 at 10:25'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), \
 show_more_link='/show_more_link')
@@ -753,34 +796,43 @@ show_more_link='/show_more_link')
         ...         <div role="article">
         ...             <div role="article">
         ...             </div>
-        ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_151"></span>
+        ...             <div data-ft="foo">
+        ...                 <abbr>13 May 2008 at 10:02</abbr>
+        ...                 <span id="like_151"></span>
+        ...             </div>
         ...         </div>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
-(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+(151, OrderedDict([('post_id', 151), ('content', ''), \
+('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="m_group_stories_container">
         ...         <div role="article">
-        ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_151"></span>
+        ...             <div data-ft="foo">
+        ...                 <abbr>13 May 2008 at 10:02</abbr>
+        ...                 <span id="like_151"></span>
+        ...             </div>
         ...         </div>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
-(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+(151, OrderedDict([('post_id', 151), ('content', ''), \
+('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="structured_composer_async_container">
         ...         <div role="article">
-        ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_151"></span>
+        ...             <div data-ft="foo">
+        ...                 <abbr>13 May 2008 at 10:02</abbr>
+        ...                 <span id="like_151"></span>
+        ...             </div>
         ...         </div>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
-(151, OrderedDict([('post_id', 151), ('date', '2008-05-13 10:02:00'), \
+(151, OrderedDict([('post_id', 151), ('content', ''), \
+('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
