@@ -852,11 +852,12 @@ def test_fetch_articles_from_timelines_visits_all_links():
     expected_urls = \
         [
             "https://mbasic.facebook.com/mark?v=timeline",
-            "https://mbasic.facebook.com/ShowMoreFromMainPage",
-            "https://mbasic.facebook.com/Link2FromMainPage",
+            "https://mbasic.facebook.com/ShowMoreFromMainPage-Link1",
+            "https://mbasic.facebook.com/ShowMoreFromMainPage-Link2",
             "https://mbasic.facebook.com/Link1FromMainPage",
             "https://mbasic.facebook.com/ShowMoreFromLink1-1",
-            "https://mbasic.facebook.com/ShowMoreFromLink1-2"
+            "https://mbasic.facebook.com/ShowMoreFromLink1-2",
+            "https://mbasic.facebook.com/Link2FromMainPage"
         ]
     expected_results = OrderedDict([
         ("mark", OrderedDict([
@@ -867,7 +868,8 @@ def test_fetch_articles_from_timelines_visits_all_links():
                 (400, OrderedDict([("someData", "4"), ('page', 'mark')])),
                 (500, OrderedDict([("someData", "5"), ('page', 'mark')])),
                 (600, OrderedDict([("someData", "6"), ('page', 'mark')])),
-                (700, OrderedDict([("someData", "7"), ('page', 'mark')]))
+                (700, OrderedDict([("someData", "7"), ('page', 'mark')])),
+                (800, OrderedDict([("someData", "8"), ('page', 'mark')]))
                 ]))
             ]))
     ])
@@ -893,12 +895,12 @@ def test_fetch_articles_from_timelines_visits_all_links():
                         (100, OrderedDict([("someData", "1")])),
                         (200, OrderedDict([("someData", "2")]))
                     ]),
-                    show_more_link="/ShowMoreFromMainPage"),
+                    show_more_link="/ShowMoreFromMainPage-Link1"),
                 TimelineResult(
                     articles=OrderedDict([
                         (300, OrderedDict([("someData", "3")]))
                     ]),
-                    show_more_link=""),
+                    show_more_link="/ShowMoreFromMainPage-Link2"),
                 TimelineResult(
                     articles=OrderedDict([
                         (400, OrderedDict([("someData", "4")]))
@@ -917,6 +919,11 @@ def test_fetch_articles_from_timelines_visits_all_links():
                 TimelineResult(
                     articles=OrderedDict([
                         (700, OrderedDict([("someData", "7")]))
+                    ]),
+                    show_more_link=""),
+                TimelineResult(
+                    articles=OrderedDict([
+                        (800, OrderedDict([("someData", "8")]))
                     ]),
                     show_more_link=""),
             ]
@@ -946,8 +953,8 @@ def test_fetch_articles_from_timelines_is_resilient_to_fb_parser_failure():
     expected_urls = \
         [
             "https://mbasic.facebook.com/mark?v=timeline",
-            "https://mbasic.facebook.com/Link2FromMainPage",
-            "https://mbasic.facebook.com/Link1FromMainPage"
+            "https://mbasic.facebook.com/Link1FromMainPage",
+            "https://mbasic.facebook.com/Link2FromMainPage"
         ]
     expected_results = OrderedDict([
         ("mark", OrderedDict([

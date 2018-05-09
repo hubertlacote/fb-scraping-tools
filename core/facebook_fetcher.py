@@ -4,6 +4,7 @@ from core import common
 from core import model
 
 from collections import OrderedDict
+from collections import deque
 import logging
 import re
 
@@ -409,12 +410,12 @@ class FacebookFetcher:
             else:
                 url = build_timeline_page_url_from_username(user_ref)
 
-            links_to_explore = [url]
+            links_to_explore = deque([url])
             links_explored = 0
 
             while links_to_explore:
 
-                url = links_to_explore.pop()
+                url = links_to_explore.popleft()
 
                 logging.info(
                     "Exploring link {0} - {1} left after, url: {2}".format(
@@ -449,7 +450,7 @@ class FacebookFetcher:
                     if show_more_link:
                         logging.info("Found show more link: {0}".format(
                             build_relative_url(show_more_link)))
-                        links_to_explore.append(
+                        links_to_explore.appendleft(
                             build_relative_url(show_more_link))
 
                 except Exception as e:
