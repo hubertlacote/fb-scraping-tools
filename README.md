@@ -15,7 +15,7 @@ To check the potential privacy implications that modern social media have, e.g.:
 
 - Find the list of all the public posts that a user ever liked by exploring all the posts of every single page he likes, can be done with [tools/fetch-all-liked-posts-from-liked-pages](tools/fetch-all-liked-posts-from-liked-pages) but it can take time,
 - Compile a list of all users who like posts from any page / group / user timeline (e.g. find all users who liked posts from [Anonymous Facebook page](https://www.facebook.com/AnonSec/)) however they restricted their profiles, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
-- Deduce a part of the friends of anyone even when they hide their friend list, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
+- Deduce a part of the friends of anyone even when they hide their friend list, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes) and [tools/fetch-tagged-users-in-timeline-posts](tools/fetch-tagged-users-in-timeline-posts),
 - Find all users with who you have friends in common that liked a post from a page / group / user (e.g. who from your network like the same music band as you), can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
 
 To check the potential psychological implications that modern social media have, e.g.:
@@ -276,6 +276,41 @@ echo '["username1", 1111111, "TheEconomist", "groups/123456"]' | ./fetch-timelin
 
 ```bash
 echo '{"username1": "somedetail", 1111111: "somedetail", "TheEconomist": "somedetail", "groups/123456": "somedetail"}' | ./fetch-timeline-posts -i > posts.json
+```
+
+- [tools/fetch-tagged-users-in-timeline-posts](tools/fetch-tagged-users-in-timeline-posts) is a shell script that returns the list of all usernames and ids that appear in posts from the timeline of a specified user id, username, group name, page name, or a list of usernames / user ids / group names / page names:
+
+```bash
+tools/fetch-tagged-users-in-timeline-posts -u "username" > users.json
+# [
+#   "100000000000001",
+#   "100000000000002",
+#   "100000000000003",
+#   ...
+#   "username1",
+#   "username2",
+#   ...
+# ]
+```
+
+Note that it is possible to then use [fetch-user-infos](fetch-user-infos) and [jq](https://stedolan.github.io/jq/) to query details about every single username / id and then remove duplicates (ids and usernames might link to the same users), e.g.:
+
+```bash
+tools/fetch-tagged-users-in-timeline-posts -u "username" | fetch-user-infos -i | jq '[.[]] | unique_by(.id)' > detailed-users.json
+[
+  {
+    "name": "Name 1",
+    "id": 100000000000001,
+    ...
+  },
+  ...
+  {
+    "name": "Name 2",
+    "id": 100000000000009,
+    ...
+  },
+  ...
+]
 ```
 
 - [tools/create-visualisable-data-from-timeline-posts](tools/create-visualisable-data-from-timeline-posts) is a shell script that generates JSON viewable with [fb-scraping-tools-viewer](https://github.com/hubertlacote/fb-scraping-tools-viewer) - it makes it possible to see when users are posting and which user is posting the most, it doesn't use like_count or comment_count.
