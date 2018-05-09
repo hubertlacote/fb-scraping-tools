@@ -441,6 +441,8 @@ class FacebookFetcher:
                         raise RuntimeError(
                             "Failed to parse timeline - no result")
 
+                    for article_id in result.articles:
+                        result.articles[article_id]["page"] = user_ref
                     articles_found[user_ref]["posts"].update(result.articles)
 
                     show_more_link = result.show_more_link

@@ -861,13 +861,13 @@ def test_fetch_articles_from_timelines_visits_all_links():
     expected_results = OrderedDict([
         ("mark", OrderedDict([
             ("posts", OrderedDict([
-                (100, "orderedDict1"),
-                (200, "orderedDict2"),
-                (300, "orderedDict3"),
-                (400, "orderedDict4"),
-                (500, "orderedDict5"),
-                (600, "orderedDict6"),
-                (700, "orderedDict7")
+                (100, OrderedDict([("someData", "1"), ('page', 'mark')])),
+                (200, OrderedDict([("someData", "2"), ('page', 'mark')])),
+                (300, OrderedDict([("someData", "3"), ('page', 'mark')])),
+                (400, OrderedDict([("someData", "4"), ('page', 'mark')])),
+                (500, OrderedDict([("someData", "5"), ('page', 'mark')])),
+                (600, OrderedDict([("someData", "6"), ('page', 'mark')])),
+                (700, OrderedDict([("someData", "7"), ('page', 'mark')]))
                 ]))
             ]))
     ])
@@ -890,33 +890,33 @@ def test_fetch_articles_from_timelines_visits_all_links():
             mock_fb_parser.parse_timeline_page.side_effect = [
                 TimelineResult(
                     articles=OrderedDict([
-                        (100, "orderedDict1"),
-                        (200, "orderedDict2")
+                        (100, OrderedDict([("someData", "1")])),
+                        (200, OrderedDict([("someData", "2")]))
                     ]),
                     show_more_link="/ShowMoreFromMainPage"),
                 TimelineResult(
                     articles=OrderedDict([
-                        (300, "orderedDict3")
+                        (300, OrderedDict([("someData", "3")]))
                     ]),
                     show_more_link=""),
                 TimelineResult(
                     articles=OrderedDict([
-                        (400, "orderedDict4")
+                        (400, OrderedDict([("someData", "4")]))
                     ]),
                     show_more_link=""),
                 TimelineResult(
                     articles=OrderedDict([
-                        (500, "orderedDict5")
+                        (500, OrderedDict([("someData", "5")]))
                     ]),
                     show_more_link="/ShowMoreFromLink1-1"),
                 TimelineResult(
                     articles=OrderedDict([
-                        (600, "orderedDict6")
+                        (600, OrderedDict([("someData", "6")]))
                     ]),
                     show_more_link="/ShowMoreFromLink1-2"),
                 TimelineResult(
                     articles=OrderedDict([
-                        (700, "orderedDict7")
+                        (700, OrderedDict([("someData", "7")]))
                     ]),
                     show_more_link=""),
             ]
@@ -952,7 +952,7 @@ def test_fetch_articles_from_timelines_is_resilient_to_fb_parser_failure():
     expected_results = OrderedDict([
         ("mark", OrderedDict([
             ("posts", OrderedDict([
-                (300, "orderedDict3")
+                (300, OrderedDict([("someData", "3"), ('page', 'mark')]))
                 ]))
             ]))
     ])
@@ -977,7 +977,7 @@ def test_fetch_articles_from_timelines_is_resilient_to_fb_parser_failure():
                 None,
                 TimelineResult(
                     articles=OrderedDict([
-                        (300, "orderedDict3")
+                        (300, OrderedDict([("someData", "3")]))
                     ]),
                     show_more_link=""),
             ]

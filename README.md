@@ -232,7 +232,8 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #                "date_org": "1 January at 12:00",
 #                "like_count": 3100,
 #                "comment_count": 100,
-#                "story_link": "https://mbasic.facebook.com/photo.php?fbid=100000000000001&id=someOtherId&..."
+#                "story_link": "https://mbasic.facebook.com/photo.php?fbid=100000000000001&id=someOtherId&...",
+#                "page": "username"
 #            },
 #            "100000000000002": {
 #                "post_id": 100000000000002,
@@ -240,7 +241,8 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #                "date_org": "2 January at 12:00",
 #                "like_count": 0,
 #                "comment_count": 0,
-#                "story_link": "https://mbasic.facebook.com/story.php?story_fbid=100000000000002&id=someOtherId&..."
+#                "story_link": "https://mbasic.facebook.com/story.php?story_fbid=100000000000002&id=someOtherId&...",
+#                "page": "username"
 #            },
 #            ...
 #        }
