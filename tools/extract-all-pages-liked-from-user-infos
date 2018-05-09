@@ -1,0 +1,8 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+cat - | jq '[.[].liked_pages[] | to_entries | .[].key]'

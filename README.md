@@ -13,7 +13,8 @@ To extract data not available easily via Facebook, e.g.:
 
 To check the potential privacy implications that modern social media have, e.g.:
 
-- Compile a list of all users who like posts from any page / group / user (e.g. find all users who liked posts from [Anonymous Facebook page](https://www.facebook.com/AnonSec/)) however they restricted their profiles, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
+- Find the list of all the public posts that a user ever liked by exploring all the posts of every single page he likes, can be done with [tools/fetch-all-liked-posts-from-liked-pages](tools/fetch-all-liked-posts-from-liked-pages) but it can take time,
+- Compile a list of all users who like posts from any page / group / user timeline (e.g. find all users who liked posts from [Anonymous Facebook page](https://www.facebook.com/AnonSec/)) however they restricted their profiles, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
 - Deduce a part of the friends of anyone even when they hide their friend list, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
 - Find all users with who you have friends in common that liked a post from a page / group / user (e.g. who from your network like the same music band as you), can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
 
@@ -309,6 +310,27 @@ echo '["username1", "username2"]' | tools/fetch-timeline-likes -i > likes.json
 ```
 
 **Note that Facebook servers do not seem to support to return more than ~5000 likers for any post**, the tool fetches as many likers as Facebook allows.
+
+- [tools/fetch-all-liked-posts-from-liked-pages](tools/fetch-all-liked-posts-from-liked-pages) is a shell script that returns the list of all public posts that a user ever liked by exploring all the posts of every single page he likes (time consuming since there might be 1000 posts to explore for every page liked):
+
+```bash
+tools/fetch-all-liked-posts-from-liked-pages -u "username" > likes.json
+# [
+#   {
+#     "post_id": 111111111111111,
+#     ...
+#     "story_link": "https://mbasic.facebook.com/...,
+#     "page": "PageName1/"
+#   },
+#   {
+#     "post_id": 111111111111112,
+#     ...
+#     "story_link": "https://mbasic.facebook.com/...,
+#     "page": "PageName2/"
+#   },
+#   ...
+# ]
+```
 
 - [tools/create-visualisable-data-from-timeline-likes](tools/create-visualisable-data-from-timeline-likes) is a shell script that generates JSON viewable with [fb-scraping-tools-viewer](https://github.com/hubertlacote/fb-scraping-tools-viewer) - it makes it possible to see the evolution of likes with time, and to see the biggest likers.
 

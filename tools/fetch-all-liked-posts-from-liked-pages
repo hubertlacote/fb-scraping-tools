@@ -1,0 +1,27 @@
+#! /bin/bash
+
+set -u
+set -e
+
+where_am_i="${0%/*}"
+
+# Limiting on purpose to a single username:
+# This script may explore thousands of pages for a single username!
+usage() {
+    [[ -z ${1:-} ]] || echo -e "Error: ${1}\n"
+    echo -e "Usage:" >&2
+    echo -e "${0} -u USERNAME" >&2
+    exit 1
+}
+
+username=""
+while getopts "u:" option_name; do
+    case $option_name in
+        u) username="${OPTARG:-}";;
+        *) usage;;
+    esac
+done
+
+[[ -n "${username}" ]] || usage "Username not specified."
+
+"${where_am_i}/../fetch-user-infos" -u "${username}" -l | "${where_am_i}/extract-all-pages-liked-from-user-infos" | "${where_am_i}/../fetch-timeline-posts" -i | "${where_am_i}/extract-all-posts-from-timeline-posts" | "${where_am_i}/../fetch-likes-for-posts" -e | jq '.["'${username}'"].likes | sort_by(.date)'
