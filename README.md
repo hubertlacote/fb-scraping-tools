@@ -173,7 +173,7 @@ echo '["user", 222222222]' | ./fetch-user-infos -i > user-infos.json
 ```bash
 tools/fetch-friend-list-with-details > friend-list-with-details.json
 #  {
-#    "111111111": {
+#    "username1": {
 #        "name": "Friend 1",
 #        "id": 111111111,
 #        "address": "Address 1",
@@ -194,7 +194,7 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #        },
 #        "mutual_friend_count": 10
 #    },
-#    "222222222": {
+#    "username2": {
 #        "name": "Friend 2",
 #        "id": 222222222,
 #        "day_and_month_of_birth": "2 January",
