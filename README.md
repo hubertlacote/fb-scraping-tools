@@ -230,6 +230,12 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #            "100000000000001": {
 #                "post_id": 100000000000001,
 #                "content": "User added a new photo",
+#                "participants": [
+#                    "username",
+#                    "username2",
+#                    "1000000000001",
+#                    "1000000000002"
+#                ],
 #                "date": "2018-01-01 12:00:00",
 #                "date_org": "1 January at 12:00",
 #                "like_count": 3100,
@@ -240,6 +246,9 @@ tools/fetch-friend-list-with-details > friend-list-with-details.json
 #            "100000000000002": {
 #                "post_id": 100000000000002,
 #                "content": "User is with some other user",
+#                "participants": [
+#                    "username"
+#                ],
 #                "date": "2018-01-02 12:00:00",
 #                "date_org": "2 January at 12:00",
 #                "like_count": 0,

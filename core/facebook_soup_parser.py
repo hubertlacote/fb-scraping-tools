@@ -640,10 +640,20 @@ OrderedDict())]), see_more_links=[])
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
         ...     <div role="article">
         ...         <div>
-        ...             Some text
+        ...             <a href="/username1?fref=nf&amp;foo">User 1</a>
+        ...             <span>Some text</span>
+        ...             <a href="/username2?lst=foo">User 2</a>
+        ...             <a href="/username2?lst=foo">User 2 again!</a>
+        ...             <a href="/profile.php?id=3333&amp;fref=bar">User 3</a>
         ...         </div>
         ...         <div>
-        ...             Some more text
+        ...             <a href="/browse/users/?ids=4444%2C5555&amp;">
+        ...             </a>
+        ...             <span>Some more</span>
+        ...             <a href="/profile.php?id=666666&amp;refid=17">
+        ...                 Location
+        ...             </a>
+        ...             <span>.</span>
         ...         </div>
         ...         <div data-ft="foo">
         ...             <abbr>13 May 2008 at 10:02</abbr>
@@ -657,7 +667,10 @@ Love" href="/link1">10</a>
         ...         </div>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 151), \
-('content', 'Some text - Some more text'), \
+('content', 'User 1 Some text User 2 User 2 again! \
+User 3 - Some more Location.'), \
+('participants', ['username1', 'username2', 'profile.php?id=3333', \
+'4444', '5555']), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 10), \
 ('comment_count', 12), \
@@ -679,6 +692,7 @@ Like, Love and Wow" href="/link1">114,721</a>
         ...         </div>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 151), ('content', 'Some text'), \
+('participants', []), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 114721), \
 ('comment_count', 2746), ('story_link', '')])
@@ -698,6 +712,7 @@ Like, Love and Wow" href="/link1">114,721</a>
         ...         </div>
         ...     </div>''', 'lxml'))
         OrderedDict([('post_id', 152), ('content', 'Some text'), \
+('participants', []), \
 ('date', '2008-05-14 10:02:00'), \
 ('date_org', '14 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')])
@@ -717,13 +732,37 @@ Like, Love and Wow" href="/link1">114,721</a>
         if soup.name != "div":  # doctests only: remove generated 'html' tag
             soup = soup.div
 
+        participants_found = []
         content = []
         for child in soup.children:
             if hasattr(child, 'attrs'):
                 if "data-ft" in child.attrs:
                     break
-                content.append("".join(child.strings).strip())
+                link_soup = child.find_all(href=re.compile("^/.*"))
+                for link in link_soup:
+                    link_found = link.attrs["href"][1:]
+                    if "browse/users/?ids=" in link_found:
+                        link_found = link_found.split("browse/users/?ids=")[1]
+                        link_found = link_found.split("&")[0]
+                        ids = link_found.split("%2C")
+                        participants_found += ids
+                    else:
+                        id_found = link_found.split("?fref")[0]
+                        id_found = id_found.split("?lst")[0]
+                        id_found = id_found.split("&fref")[0]
+                        id_found = id_found.split("&lst")[0]
+                        if id_found != link_found and \
+                           id_found not in participants_found:
+                            participants_found.append(id_found)
+
+                sub_content = []
+                for s in child.strings:
+                    stripped_s = s.strip()
+                    if stripped_s:
+                        sub_content.append(stripped_s)
+                content.append(" ".join(sub_content))
         content_string = " - ".join(content)
+        content_string = content_string.replace(" .", ".")
 
         date_tag = soup.find("abbr")
         if not date_tag:
@@ -757,6 +796,7 @@ Like, Love and Wow" href="/link1">114,721</a>
 
         return OrderedDict([
             ("post_id", article_id), ("content", content_string),
+            ("participants", participants_found),
             ("date", date), ("date_org", date_org),
             ("like_count", like_count), ("comment_count", comment_count),
             ("story_link", full_story_link)])
@@ -783,10 +823,12 @@ Like, Love and Wow" href="/link1">114,721</a>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
+('participants', []), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')])), \
 (152, OrderedDict([('post_id', 152), ('content', ''), \
+('participants', []), \
 ('date', '2008-05-13 10:25:00'), \
 ('date_org', '13 May 2008 at 10:25'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), \
@@ -804,6 +846,7 @@ show_more_link='/show_more_link')
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
+('participants', []), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
@@ -818,6 +861,7 @@ show_more_link='/show_more_link')
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
+('participants', []), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
@@ -832,6 +876,7 @@ show_more_link='/show_more_link')
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
+('participants', []), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 0), \
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
