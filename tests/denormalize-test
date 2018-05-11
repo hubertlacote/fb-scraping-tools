@@ -178,8 +178,11 @@ EOF
     "relationship": "In a relationship",
     "work": "Work place",
     "year_of_birth": 1980,
+    "post_id": 123456789000000000,
     "content": "User name 1 added a new photo",
     "time": "2018-04-01 08:30:00",
+    "like_count": 3,
+    "comment_count": 1,
     "link": "https://mbasic.facebook.com/photo.php?fbid=123456789000000001&id=foo",
     "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
   },
@@ -191,8 +194,11 @@ EOF
     "relationship": "In a relationship",
     "work": "Work place",
     "year_of_birth": 1980,
+    "post_id": 123456789000000000,
     "content": "User name 1 added a new photo",
     "time": "2018-04-02 09:30:00",
+    "like_count": 30,
+    "comment_count": 10,
     "link": "https://mbasic.facebook.com/photo.php?fbid=123456789000000002&id=bar",
     "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
   },
@@ -204,8 +210,11 @@ EOF
     "relationship": "Married",
     "work": "Work place 2",
     "year_of_birth": 1981,
+    "post_id": 456789123000000000,
     "content": "User name 2 added a new photo",
     "time": "2018-05-01 10:30:00",
+    "like_count": 5,
+    "comment_count": 2,
     "link": "https://mbasic.facebook.com/photo.php?fbid=456789123000000001&id=cow",
     "mutual_friends": "Mutual Friend 1,Mutual Friend 3"
   }
@@ -253,8 +262,11 @@ EOF
     "relationship": "",
     "work": "",
     "year_of_birth": "",
+    "post_id": 123456789000000000,
     "content": "User name 1 added a new photo",
     "time": "2018-04-01 08:30:00",
+    "like_count": 3,
+    "comment_count": 1,
     "link": "https://mbasic.facebook.com/photo.php?fbid=123456789000000001&id=foo",
     "mutual_friends": "Mutual Friend 1"
   }
@@ -336,8 +348,11 @@ EOF
     "relationship": "Married",
     "work": "Work place 2",
     "year_of_birth": 1981,
+    "post_id": 456789123000000000,
     "content": "User name 2 added a new photo",
     "time": "2018-05-01 10:30:00",
+    "like_count": 5,
+    "comment_count": 2,
     "link": "https://mbasic.facebook.com/photo.php?fbid=456789123000000001&id=bar",
     "mutual_friends": "Mutual Friend 3"
   }
@@ -387,8 +402,11 @@ EOF
     "relationship": "In a relationship",
     "work": "Work place",
     "year_of_birth": 1980,
+    "post_id": 123456789000000000,
     "content": "User name 1 added a new photo",
     "time": "2018-04-01 08:30:00",
+    "like_count": 3,
+    "comment_count": 1,
     "link": "https://mbasic.facebook.com/photo.php?fbid=123456789000000001&id=foo",
     "mutual_friends": ""
   }
@@ -437,8 +455,11 @@ EOF
     "relationship": "In a relationship",
     "work": "Work place",
     "year_of_birth": 1980,
+    "post_id": 123456789000000000,
     "content": "User name 1 added a new photo",
     "time": "2018-04-01 08:30:00",
+    "like_count": 3,
+    "comment_count": 1,
     "link": "https://mbasic.facebook.com/photo.php?fbid=123456789000000001&id=foo",
     "mutual_friends": ""
   }
@@ -478,7 +499,7 @@ test_denormalize_posts_can_have_compact_output() {
 EOF
 )
 
-  local expected_output='[{"id":11111111,"name":"User name 1","education":"University name","gender":"Male","relationship":"In a relationship","work":"Work place","year_of_birth":1980,"content":"User name 1 added a new photo","time":"2018-04-01 08:30:00","link":"https://mbasic.facebook.com/photo.php?fbid=123456789000000001&id=foo","mutual_friends":""}]'
+  local expected_output='[{"id":11111111,"name":"User name 1","education":"University name","gender":"Male","relationship":"In a relationship","work":"Work place","year_of_birth":1980,"post_id":123456789000000000,"content":"User name 1 added a new photo","time":"2018-04-01 08:30:00","like_count":3,"comment_count":1,"link":"https://mbasic.facebook.com/photo.php?fbid=123456789000000001&id=foo","mutual_friends":""}]'
 
   assertStringsEqual "${expected_output}" "${output}"
 }
@@ -614,8 +635,11 @@ EOF
     "relationship": "In a relationship",
     "work": "Work place",
     "year_of_birth": 1980,
+    "post_id": 1111111111111111,
     "content": "User added a new photo",
     "time": "2017-12-17 23:01:00",
+    "like_count": 3100,
+    "comment_count": 100,
     "link": "https://mbasic.facebook.com/photo.php?fbid=1111111111111111&id=foo",
     "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
   },
@@ -627,8 +651,11 @@ EOF
     "relationship": "In a relationship",
     "work": "Work place",
     "year_of_birth": 1980,
+    "post_id": 1111111111111112,
     "content": "User added a new photo",
     "time": "2016-12-18 23:02:00",
+    "like_count": 1000,
+    "comment_count": 50,
     "link": "https://mbasic.facebook.com/photo.php?fbid=1111111111111112&id=bar",
     "mutual_friends": "Mutual Friend 1,Mutual Friend 2"
   },
@@ -640,8 +667,11 @@ EOF
     "relationship": "Married",
     "work": "Work place 2",
     "year_of_birth": 1981,
+    "post_id": 1111111111111113,
     "content": "User added a new photo",
     "time": "2017-12-19 23:03:00",
+    "like_count": 500,
+    "comment_count": 25,
     "link": "https://mbasic.facebook.com/photo.php?fbid=1111111111111113&id=cow",
     "mutual_friends": "Mutual Friend 1,Mutual Friend 3"
   }
@@ -684,8 +714,11 @@ EOF
     "relationship": "",
     "work": "",
     "year_of_birth": "",
+    "post_id": 1111111111111111,
     "content": "User added a new photo",
     "time": "2017-12-17 23:01:00",
+    "like_count": 500,
+    "comment_count": 25,
     "link": "https://mbasic.facebook.com/photo.php?fbid=1111111111111111&id=foo",
     "mutual_friends": ""
   }
