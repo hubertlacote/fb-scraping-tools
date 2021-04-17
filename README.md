@@ -6,22 +6,14 @@
 
 To learn how to scrape non-interactive websites (with javascript disabled) using [requests](http://docs.python-requests.org/) and [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup).
 
-To extract data not available easily via Facebook, e.g.:
+Use cases:
 
 - Find the most popular posts of any page, can be done with [fetch-timeline-posts](fetch-timeline-posts),
 - Find the birthday dates of all your friends who make it available via Facebook, can be done with [tools/fetch-friend-list-with-details](tools/fetch-friend-list-with-details) and for the one that hid their birthday dates after a few years of using Facebook, it can still be deduced by looking for messages posted on their timeline using [fetch-timeline-posts](fetch-timeline-posts).
-
-To check the potential privacy implications that modern social media have, e.g.:
-
 - Find the list of all the public posts that a user ever liked by exploring all the posts of every single page he likes, can be done with [tools/fetch-all-liked-posts-from-liked-pages](tools/fetch-all-liked-posts-from-liked-pages) but it can take time,
 - Compile a list of all users who like posts from any page / group / user timeline (e.g. find all users who liked posts from [Anonymous Facebook page](https://www.facebook.com/AnonSec/)) however they restricted their profiles, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
 - Deduce a part of the friends of anyone even when they hide their friend list, can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes) and [tools/fetch-tagged-users-in-timeline-posts](tools/fetch-tagged-users-in-timeline-posts),
 - Find all users with who you have friends in common that liked a post from a page / group / user (e.g. who from your network like the same music band as you), can be done with [tools/fetch-timeline-likes](tools/fetch-timeline-likes),
-
-To check the potential psychological implications that modern social media have, e.g.:
-
-- "According to one Facebook executive, millennials look at their phones on average more than 150 times a day" (Smartphones and anxiety, The Economist, 26/11/2017), can be checked for your friends with [tools/create-visualisable-data-from-last-active-times](tools/create-visualisable-data-from-last-active-times),
-- Find which of your friends is posting the most and the evolution over time, can be done with [tools/create-visualisable-data-from-timeline-posts-of-all-friends](tools/create-visualisable-data-from-timeline-posts-of-all-friends).
 
 ## Disclaimer
 
@@ -30,19 +22,6 @@ This project is a learning experiment and shall not be used to collect data from
 Instead, Facebook Graph API can be used to collect data, even though it sometimes returns less information than is available through normal browsing (e.g. friend list), see [Facebook's Graph API v2.0 kills data mining](https://github.com/ptwobrussell/Mining-the-Social-Web-2nd-Edition/issues/205) and [Facebook Is Shutting Down Its API For Giving Your Friends’ Data To Apps](https://techcrunch.com/2015/04/28/facebook-api-shut-down/).
 
 Therefore, I urge you to use this project for educational purpose only, and not to use it to access Facebook.
-
-### Risks of having your profile restricted for 1 week
-
-In case your are still not convinced, Facebook might also restrict your profile from seeing the profiles of anyone other than friends and friends of friends for a week if you use these tools. This is what you might see on [a Facebook notification](https://www.facebook.com/support/?notif_t=feature_limits):
-
-> **You're restricted from seeing the profiles of anyone other than friends and friends of friends.**
-> This restriction is a precaution we use to make sure only people are seeing profile posts, photos and activity.
-
-> **Why you're seeing this**
-> The restriction is typically used only for computers posing as real people, so you may have been restricted by mistake. If so, we're very sorry for the inconvenience and will work to lift the restriction as soon as possible.
-
-> **The restriction has been lifted** (1 week later)
-> You were temporarily restricted from seeing the profiles of anyone other than friends and friends of friends. Recent activity led us to believe that your profile was copying information from other profiles, so the restriction was put in place as a precaution. You may have been restricted by mistake. If so, we're very sorry for the inconvenience this caused.
 
 ## License
 
