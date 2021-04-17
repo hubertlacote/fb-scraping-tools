@@ -7,7 +7,14 @@ from collections import OrderedDict
 
 CONFIG_FILENAME = "config/config.json"
 
-CONFIG_KEYS = ['caching_secs', 'cookie_xs', 'cookie_c_user', 'logging_level']
+CONFIG_KEYS = [
+    'caching_secs',
+    'cookie_c_user',
+    'cookie_datr',
+    'cookie_xs',
+    'logging_level'
+]
+
 Config = namedtuple('Config', CONFIG_KEYS)
 
 
@@ -17,31 +24,43 @@ def prettify(decoded_json, indent=4):
 
 def parse_config(config_json):
     """
-    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "xs_val",\
-    "cookie_c_user": "uid_val", "logging_level": "INFO" })
-    Config(caching_secs=-1, cookie_xs='xs_val', cookie_c_user='uid_val', \
-logging_level=20)
+    >>> parse_config({ "caching_secs": -1, "cookie_c_user": "uid_val",\
+    "cookie_datr": "uid_val", "cookie_xs" : "xs_val",\
+    "logging_level": "INFO" })
+    Config(caching_secs=-1, cookie_c_user='uid_val', cookie_datr='uid_val', \
+cookie_xs='xs_val', logging_level=20)
 
-    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "",\
-    "cookie_c_user": "uid_val", "logging_level": "INFO" })
-    Traceback (most recent call last):
-    ...
-    RuntimeError: Configuration file does not contain 'cookie_xs'
-
-    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "xs_val",\
+    >>> parse_config({ "caching_secs": -1, "cookie_c_user": "",\
+    "cookie_datr": "datr_val", "cookie_xs" : "xs_val",\
     "logging_level": "INFO" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file does not contain 'cookie_c_user'
 
-    >>> parse_config({ "caching_secs": -1, "cookie_xs" : "xs_val",\
-    "cookie_c_user": "uid_val", "logging_level": "HORROR" })
+    >>> parse_config({ "caching_secs": -1, "cookie_c_user": "uid_val",\
+    "cookie_datr": "", "cookie_xs" : "xs_val",\
+    "logging_level": "INFO" })
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Configuration file does not contain 'cookie_datr'
+
+    >>> parse_config({ "caching_secs": -1, "cookie_c_user": "uid_val",\
+    "cookie_datr": "datr_val", "cookie_xs" : "",\
+    "logging_level": "INFO" })
+    Traceback (most recent call last):
+    ...
+    RuntimeError: Configuration file does not contain 'cookie_xs'
+
+    >>> parse_config({ "caching_secs": -1, "cookie_c_user" : "uid_val",\
+    "cookie_datr": "datr_val", "cookie_xs": "xs_val",\
+    "logging_level": "HORROR" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file contains an invalid 'logging_level'
 
-    >>> parse_config({ "caching_secs": "-10000", "cookie_xs" : "xs_val",\
-    "cookie_c_user": "uid_val", "logging_level": "INFO" })
+    >>> parse_config({ "caching_secs": "-10000", "cookie_c_user" : "uid_val",\
+    "cookie_datr": "datr_val", "cookie_xs": "xs_val", \
+    "logging_level": "INFO" })
     Traceback (most recent call last):
     ...
     RuntimeError: Configuration file contains an invalid 'caching_secs' - \
@@ -148,8 +167,9 @@ def configure(caching_secs_override=None):
 
 
 def build_cookie(config):
-    return "c_user={0}; xs={1}; noscript=1;".format(
+    return "c_user={}; datr={}; xs={}; noscript=1;".format(
         config.cookie_c_user,
+        config.cookie_datr,
         config.cookie_xs
     )
 

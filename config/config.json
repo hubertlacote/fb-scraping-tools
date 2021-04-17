@@ -1,6 +1,7 @@
 {
     "caching_secs": -1,
-    "cookie_xs": "",
     "cookie_c_user": "",
+    "cookie_datr": "",
+    "cookie_xs": "",
     "logging_level": "INFO"
 }

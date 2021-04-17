@@ -44,7 +44,7 @@ Change the [language of Facebook user interface](https://www.facebook.com/settin
 
 Fill the file [config/config.json](config/config.json):
 
-- specify your Facebook cookies: xs (**cookie_xs**) and c_user (**cookie_c_user**):
+- specify your Facebook cookies: c_user (**cookie_c_user**), datr (**cookie_datr**), xs (**cookie_xs**):
   - On Chrome, you can find them there: [chrome://settings/siteData](chrome://settings/siteData), or by pressing F12 and going to Application (tab) - Cookies (sidebar).
 
 - optionally, change the logging level (**logging_level**) using one of these: "DEBUG", "INFO", "WARNING", "ERROR".

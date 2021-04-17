@@ -12,7 +12,7 @@ from unittest.mock import call, Mock, ANY
 
 def test_fetch_lat_calls_downloader_correctly():
 
-    expected_cookie = "c_user=123; xs=abc; noscript=1;"
+    expected_cookie = "c_user=123; datr=456; xs=abc; noscript=1;"
     expected_url = \
         "https://5-edge-chat.facebook.com/pull?channel=p_123&seq=1&" + \
         "partition=-2&clientid=1a2b3c4d&cb=ze0&idle=0&qp=yisq=129169&" + \
