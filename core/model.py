@@ -49,13 +49,13 @@ def append_times(new_times, times):
 def parse_relative_time(date_str):
     """
     >>> parse_relative_time("5 mins")
-    datetime.timedelta(0, 300)
+    datetime.timedelta(seconds=300)
     >>> parse_relative_time("1 min")
-    datetime.timedelta(0, 60)
+    datetime.timedelta(seconds=60)
     >>> parse_relative_time("7 hrs")
-    datetime.timedelta(0, 25200)
+    datetime.timedelta(seconds=25200)
     >>> parse_relative_time("1 hr")
-    datetime.timedelta(0, 3600)
+    datetime.timedelta(seconds=3600)
     >>> parse_relative_time("Just now")
     datetime.timedelta(0)
     >>> parse_relative_time("Not a date")
@@ -80,7 +80,7 @@ def parse_relative_time(date_str):
 def parse_fuzzy_time(date_str):
     """
     >>> parse_fuzzy_time("Yesterday at 19:34")
-    (datetime.time(19, 34), datetime.timedelta(1))
+    (datetime.time(19, 34), datetime.timedelta(days=1))
     >>> parse_fuzzy_time("Today at 19:34")
     (datetime.time(19, 34), datetime.timedelta(0))
     >>> parse_fuzzy_time("Not a date")
