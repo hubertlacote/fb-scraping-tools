@@ -39,11 +39,6 @@ def detect_error_type(content):
         return "Failed to parse page"
 
 
-def build_relative_url(relative_url):
-    return "https://mbasic.facebook.com{0}". \
-        format(relative_url)
-
-
 class FacebookSoupParser:
 
     def parse_buddy_list(self, raw_json):
@@ -638,34 +633,38 @@ OrderedDict())]), see_more_links=[])
     def parse_post(self, soup):
         """
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
-        ...     <div role="article">
-        ...         <div>
-        ...             <a href="/username1?fref=nf&amp;foo">User 1</a>
-        ...             <span>Some text</span>
-        ...             <a href="/username2?lst=foo">User 2</a>
-        ...             <a href="/username2?lst=foo">User 2 again!</a>
-        ...             <a href="/profile.php?id=3333&amp;fref=bar">User 3</a>
-        ...         </div>
-        ...         <div>
-        ...             <a href="/browse/users/?ids=4444%2C5555&amp;">
-        ...             </a>
-        ...             <span>Some more</span>
-        ...             <a href="/profile.php?id=666666&amp;refid=17">
-        ...                 Location
-        ...             </a>
-        ...             <span>.</span>
-        ...         </div>
-        ...         <div data-ft="foo">
-        ...             <abbr>13 May 2008 at 10:02</abbr>
-        ...             <span id="like_151">
-        ...                 <a aria-label="10 reactions, including Like and \
+        ...   <article>
+        ...     <div>
+        ...       <a href="/username1?refid=18=nf&amp;foo">User 1</a>
+        ...       <span>Some text</span>
+        ...       <a href="/username2?refid=18">User 2</a>
+        ...       <a href="/username2?refid=18">User 2 again!</a>
+        ...       <a href="/profile.php?id=3333&amp;refid=18">User 3</a>
+        ...     </div>
+        ...     <div>
+        ...       <a href="/page/photos/123/?type=3&amp;source=48&amp;\
+refid=18"></a>
+        ...       <a href="/story.php?story_fbid=123&amp;id=4&amp;\
+refid=18"></a>
+        ...       <a href="/browse/users/?ids=4444%2C5555&amp;">
+        ...       </a>
+        ...       <span>Some more</span>
+        ...       <a href="/profile.php?id=666666&amp;refid=17">
+        ...         Location
+        ...       </a>
+        ...       <span>.</span>
+        ...     </div>
+        ...     <div data-ft="foo">
+        ...       <abbr>13 May 2008 at 10:02</abbr>
+        ...       <span id="like_151">
+        ...         <a aria-label="10 reactions, including Like and \
 Love" href="/link1">10</a>
-        ...                 <a href="/link2">React</a>
-        ...             </span>
-        ...             <a href="/link3">12 Comments</a>
-        ...             <a href="/fullStoryLink">Full Story</a>
-        ...         </div>
-        ...     </div>''', 'lxml'))
+        ...         <a href="/link2">React</a>
+        ...       </span>
+        ...       <a href="/link3">12 Comments</a>
+        ...       <a href="https://mbasic.facebook.com/fu">Full Story</a>
+        ...     </div>
+        ...   </article>''', 'lxml'))
         OrderedDict([('post_id', 151), \
 ('content', 'User 1 Some text User 2 User 2 again! \
 User 3 - Some more Location.'), \
@@ -674,10 +673,10 @@ User 3 - Some more Location.'), \
 ('date', '2008-05-13 10:02:00'), \
 ('date_org', '13 May 2008 at 10:02'), ('like_count', 10), \
 ('comment_count', 12), \
-('story_link', 'https://mbasic.facebook.com/fullStoryLink')])
+('story_link', 'https://mbasic.facebook.com/fu')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
-        ...     <div role="article">
+        ...     <article>
         ...         <div>
         ...             Some text
         ...         </div>
@@ -690,7 +689,7 @@ Like, Love and Wow" href="/link1">114,721</a>
         ...             </span>
         ...             <a href="/link3">2,746 Comments</a>
         ...         </div>
-        ...     </div>''', 'lxml'))
+        ...     </article>''', 'lxml'))
         OrderedDict([('post_id', 151), ('content', 'Some text'), \
 ('participants', []), \
 ('date', '2008-05-13 10:02:00'), \
@@ -698,7 +697,7 @@ Like, Love and Wow" href="/link1">114,721</a>
 ('comment_count', 2746), ('story_link', '')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
-        ...     <div role="article">
+        ...     <article>
         ...         <div>
         ...             Some text
         ...         </div>
@@ -710,7 +709,7 @@ Like, Love and Wow" href="/link1">114,721</a>
         ...             </span>
         ...             <a href="/link3">Comment</a>
         ...         </div>
-        ...     </div>''', 'lxml'))
+        ...     </article>''', 'lxml'))
         OrderedDict([('post_id', 152), ('content', 'Some text'), \
 ('participants', []), \
 ('date', '2008-05-14 10:02:00'), \
@@ -718,22 +717,25 @@ Like, Love and Wow" href="/link1">114,721</a>
 ('comment_count', 0), ('story_link', '')])
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
-        ...     <div role="article">
-        ...     </div>''', 'lxml'))
+        ...     <article>
+        ...     </article>''', 'lxml'))
 
         >>> FacebookSoupParser().parse_post(BeautifulSoup('''
-        ...     <div role="article">
+        ...     <article>
         ...         <div data-ft="foo">
         ...             <abbr>14 May 2008 at 10:02</abbr>
         ...         </div>
-        ...     </div>''', 'lxml'))
+        ...     </article>''', 'lxml'))
         """
 
-        if soup.name != "div":  # doctests only: remove generated 'html' tag
-            soup = soup.div
+        # doctests only: remove generated 'html' tag
+        if soup.name != "article":
+            soup = soup.article
 
         participants_found = []
         content = []
+        if not soup:
+            return None
         for child in soup.children:
             if hasattr(child, 'attrs'):
                 if "data-ft" in child.attrs:
@@ -747,12 +749,15 @@ Like, Love and Wow" href="/link1">114,721</a>
                         ids = link_found.split("%2C")
                         participants_found += ids
                     else:
-                        id_found = link_found.split("?fref")[0]
+                        id_found = link_found.split("&refid=18")[0]
+                        id_found = id_found.split("?refid=18")[0]
                         id_found = id_found.split("?lst")[0]
                         id_found = id_found.split("&fref")[0]
                         id_found = id_found.split("&lst")[0]
                         if id_found != link_found and \
-                           id_found not in participants_found:
+                           id_found not in participants_found and \
+                           '/photos/' not in id_found and \
+                           'story.php?' not in id_found:
                             participants_found.append(id_found)
 
                 sub_content = []
@@ -792,7 +797,7 @@ Like, Love and Wow" href="/link1">114,721</a>
         full_story_link = ""
         full_story_soup = soup.find("a", string="Full Story")
         if full_story_soup and "href" in full_story_soup.attrs:
-            full_story_link = build_relative_url(full_story_soup.attrs["href"])
+            full_story_link = full_story_soup.attrs["href"]
 
         return OrderedDict([
             ("post_id", article_id), ("content", content_string),
@@ -805,18 +810,18 @@ Like, Love and Wow" href="/link1">114,721</a>
         """
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="tlFeed">
-        ...         <div role="article">
+        ...         <article>
         ...             <div data-ft="foo">
         ...                 <abbr>13 May 2008 at 10:02</abbr>
         ...                 <span id="like_151"></span>
         ...             </div>
-        ...         </div>
-        ...         <div role="article">
+        ...         </article>
+        ...         <article>
         ...             <div data-ft="foo">
         ...                 <abbr>13 May 2008 at 10:25</abbr>
         ...                 <span id="like_152"></span>
         ...             </div>
-        ...         </div>
+        ...         </article>
         ...         <div>
         ...             <a href="/show_more_link">Show more</a>
         ...         </div>
@@ -835,14 +840,14 @@ Like, Love and Wow" href="/link1">114,721</a>
 show_more_link='/show_more_link')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="timelineBody">
-        ...         <div role="article">
-        ...             <div role="article">
-        ...             </div>
+        ...         <article>
+        ...             <article>
+        ...             </article>
         ...             <div data-ft="foo">
         ...                 <abbr>13 May 2008 at 10:02</abbr>
         ...                 <span id="like_151"></span>
         ...             </div>
-        ...         </div>
+        ...         </article>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
@@ -852,12 +857,12 @@ show_more_link='/show_more_link')
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="m_group_stories_container">
-        ...         <div role="article">
+        ...         <article>
         ...             <div data-ft="foo">
         ...                 <abbr>13 May 2008 at 10:02</abbr>
         ...                 <span id="like_151"></span>
         ...             </div>
-        ...         </div>
+        ...         </article>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
@@ -867,12 +872,12 @@ show_more_link='/show_more_link')
 ('comment_count', 0), ('story_link', '')]))]), show_more_link='')
         >>> FacebookSoupParser().parse_timeline_page('''
         ...     <div id="structured_composer_async_container">
-        ...         <div role="article">
+        ...         <article>
         ...             <div data-ft="foo">
         ...                 <abbr>13 May 2008 at 10:02</abbr>
         ...                 <span id="like_151"></span>
         ...             </div>
-        ...         </div>
+        ...         </article>
         ...     </div>''')
         TimelineResult(articles=OrderedDict([\
 (151, OrderedDict([('post_id', 151), ('content', ''), \
@@ -895,9 +900,8 @@ show_more_link='/show_more_link')
             return None
 
         articles_found = OrderedDict()
-        articles_soup = main_soup.find_all("div", attrs={"role": "article"})
+        articles_soup = main_soup.find_all("article")
         for article in articles_soup:
-
             post = self.parse_post(article)
             if post:
                 logging.info(
